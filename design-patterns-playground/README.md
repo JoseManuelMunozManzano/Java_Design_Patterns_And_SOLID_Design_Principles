@@ -10,7 +10,7 @@ Vamos a estudiar principios SOLID y patrones de diseño.
 
 Vamos a hablar de los principios SOLID.
 
-SOLID es un acronimo que representa cinco principios de diseño.
+SOLID es un acrónimo que representa cinco principios de diseño.
 
 - Single Responsibility Principle.
 - Open / Closed Principle.
@@ -295,3 +295,194 @@ En `src/java/com/jmunoz` creamos los paquetes/clases siguientes:
       - `Formatter`: Solo para completar la app.
       - `JSONFormatter`: Solo para completar la app.
       - `Main`: Clase principal para las pruebas. Crea y pasa las instancias de `Formatter` y `PrintWritter`.
+
+## Creational Design Patterns
+
+Los patrones de diseño creacionales tratan con la creación de objetos de clases.
+
+¿Por qué necesitamos patrones de diseño para crear un objeto de una clase? ¿No podemos usar el operador `new` y ya está?
+
+Si, pero hay muchos requisitos adicionales que tienen lugar cuando estamos desarrollando una aplicación real.
+
+Por ejemplo, nuestro objeto podría necesitar muchos otros objetos antes de que pueda crearse, o puede necesitar muchos pasos para poder crearse, como leer data de un fichero o hacer una query para leer de BD y de ahí crear el objeto final.
+
+Otro requerimiento posible es que solo pueda existir un objeto de esa clase en toda la aplicación, porque esa clase puede ser una configuración.
+
+Estos son los patrones de diseño creacionales que vamos a ver en el curso:
+
+- Builder
+- Simple Factory
+- Factory Method
+- Prototype
+- Singleton
+- Abstract Factory
+- Object Pool
+
+### Builder
+
+#### Builder - Introduction
+
+Es un patrón de diseño creacional. Usaremos `builder` cuando queramos construir objetos de una clase.
+
+¿Qué problema resuelve el patrón de diseño `builder`?
+
+**1. Los constructores de una clase requieren mucha información.**
+
+![alt Builder 1](./images/07-Builder01.png)
+
+Aquí tenemos una clase llamada `Product` y digamos que tenemos un requerimiento que dice que los objetos de esta clase deben ser inmutables.
+
+Un objeto inmutable significa que su estado o propiedades no pueden cambiarse una vez que el objeto se ha creado. Un ejemplo es la clase `String`, cuyos objetos son inmutables.
+
+Cuando escribimos clases inmutables, normalmente terminamos haciendo constructores con varios parámetros, ya que tenemos que proveer toda la información de estado para el objeto en el mismo constructor.
+
+Tener un método o constructor que necesita muchos argumentos es considerado una mala práctica, ya que cualquiera que use ese código tiene que descubrir que significa cada parámetro para poder pasar el valor correcto en la secuencia correcta.
+
+Si nuestros argumentos son similares o del mismo tipo de dato, el problema es todavía más grande.
+
+En el ejemplo de la imagen, tenemos que pasar varios valores numéricos. Aunque parezca que el nombre del parámetro sirve como documentación puede que distribuyamos el código de manera ya compilada en un fichero `jar` a otros desarrolladores, por lo que no tienen acceso a los nombres de los argumentos esperados.
+
+Aquí es donde el patrón de diseño `builder` puede ayudarnos.
+
+- Hace más fácil usar constructores para crear objetos de la clase.
+- Evitan construir constructores innecesarios e igualmente tener objetos inmutables.
+
+**2. Objetos que necesitan otros objetos o "partes" para construirlos.**
+
+![alt Builder 2](./images/08-Builder02.png)
+
+En este ejemplo tenemos las clases `Address` y `User`. Si vemos la clase `User` vemos que necesitamos un objeto de tipo `Address` y una lista de `Role` para poder crear mi objeto de tipo `User`.
+
+Podemos pensar en los objetos `Address` y `Role` como las partes que utilizamos para montar nuestro objeto `User`.
+
+Hay ciertos pasos que tenemos que seguir, como son la creación del objeto `Address`, varios objetos `Role` y la creación de una colección que los contenga, antes de poder llamar a nuestro constructor para crear un objeto `User`.
+
+En estos casos también es muy útil el patrón `builder`.
+
+**Por tanto, ¿cuándo y cómo usaremos el patrón de diseño `Builder`?**
+
+- Cuando para construir un objeto es necesario seguir un proceso complejo que conlleva muchos pasos.
+  - Complejo se refiere a una gran cantidad de argumentos que el constructor necesita o a una gran cantidad de pasos necesarios para poder crear un objeto.
+- En `builder` eliminamos del código del cliente la lógica relacionada con la construcción del objeto y lo abstraemos en clases separadas, de forma que el cliente de nuestro objeto pueda crear esos objetos fácilmente.
+
+**UML**
+
+![alt Builder - UML](./images/09-BuilderUML.png)
+
+Vemos que existen 4 roles diferentes en este patrón de diseño.
+
+- Rol - Product
+  - Clase Product: Queremos crear objetos (que son complejos) de esta clase. Es el resultado final que queremos construir.
+  - Product se refiere a algo final, no a un producto físico como un IPhone.
+- Rol - Builder
+  - Es una interface para crear las ¨partes" de nuestro objeto Product.
+  - También provee un método `build()` para instanciar el objeto final.
+  - También pueden proveer un método, `getProduct()` en nuestro ejemplo, que pueden usar los desarrolladores para consultar un objeto construido.
+- Rol - ConcreteBuilder
+  - Es la implementación del rol Builder. 
+  - Construye las distintas partes y monta el product final.
+  - Opcionalmente, puede mantener la traza de los product creados.
+- Rol - Director
+  - Es quien llama a los métodos descritos en el rol Builder.
+  - Usa el rol Builder para construir un objeto.
+  - Conoce los pasos y la secuencia para construir un product.
+
+#### Builder - Implementation Steps
+
+Vamos a ver los pasos necesarios cuando queremos implementar un `Builder` en nuestro código:
+
+- Comenzamos creando el `builder`.
+  - Identificamos las "partes" (y/o los pasos) del producto y proveemos métodos para crear esas partes.
+  - Debemos proveer un método para montar o construir, llamado normalmente `build()`, el producto/objeto.
+  - Debemos proveer una forma o método para consultar un objeto ya construido.
+  - Opcionalmente, `builder` puede mantener una referencia al producto construido, de tal forma que pueda ser consultado de nuevo en el futuro.
+- Necesitamos un director, que puede ser una clase separada (esto es más raro), o bien el cliente puede tener el rol de director también (lo más normal).
+
+#### Builder - Example UML
+
+Este es el UML del ejemplo de patrón de diseño `Builder` que vamos a construir en Java.
+
+![alt Builder - Example UML](./images/10-Builder-ExampleUML.png)
+
+- `UserDTO`: Es una interface DTO (data transfer object).
+- `UserWebDTO` Es una implementación concreta de `UserDTO`. Es lo que queremos construir, nuestro producto final. Es el rol `Product`.
+- `UserWebDTOBuilder`: Es la clase que usaremos para crear `UserWebDTO`. Implementa `UserDTOBuilder`. Es el rol `ConcreteBuilder`.
+- `UserDTOBuilder`: Es una interface o clase abstracta que sencillamente define los métodos que corresponden a cada "parte" del objeto `UserDTO`. Es el rol `Builder`.
+- `Client`: Es nuestra clase principal con método `main`. Es el rol `Director`.
+- Las clases que pueden verse en color naranja son ejemplos de como podemos mejorar aún más este ejemplo. `UserRESTDTOBuilder` es otra implementación de `UserDTOBuilder` que podemos usar para construir otro tipo de objeto, `UserRESTDTO`.
+  - Es un ejemplo de como podemos extender el patrón de diseño `Builder`.
+
+#### Builder - Implementation
+
+En `src/java/com/jmunoz` creamos los paquetes/clases siguientes:
+
+- `sec02`
+  - `builder`
+    - `Address`: Clase normal usada en `User` para almacenar información de la dirección del usuario.
+    - `User`: Clase Entity usada para construir el DTO. Este objeto lo obtendríamos desde una capa de persistencia, con data almacenada en BD.
+    - `UserDTO`: Interface DTO.
+    - `UserWebDTO`: Implementación de `UserDTO`. Cumple el rol `Product`, producto final a obtener del patrón `builder`. Vamos, lo que queremos construir.
+    - `UserDTOBuilder`: Es una interface que provee los métodos necesarios para montar cada "parte" de nuestro objeto `UserDTO`. Es el rol `Builder`.
+      - Cada uno de estos métodos devuelve una referencia a sí mismo (al builder), así que usaremos este tipo de implementación para usar `method chaining`.
+      - El método `build()` es el que monta el objeto final.
+    - `UserWebDTOBuilder`: Es una implementación concreta de `UserDTOBuilder`. Es el rol `ConcreteBuilder`.
+      - Es lo que realmente construimos en esta clase.
+    - `Client`: Es nuestra clase principal con el rol de `Director` que usa el builder `UserDTOBuilder`.
+
+#### Builder - Implementation 2
+
+Vamos a ver otra forma muy común de implementar el patrón `builder` en el mundo real.
+
+En `src/java/com/jmunoz` creamos los paquetes/clases siguientes:
+
+- `sec02`
+  - `builder2`
+    - `Address`: Clase normal usada en `User` para almacenar información de la dirección del usuario.
+    - `User`: Clase Entity usada para construir el DTO. Este objeto lo obtendríamos desde una capa de persistencia, con data almacenada en BD.
+    - `UserDTO`: Interface DTO. Cumple el rol de `Product`. Queremos crear objetos de esta clase.
+      - No tenemos constructor, pero vamos a construir una instancia inmutable, usando métodos getter public y métodos setter private.
+      - Es decir, esta forma de implementar el `builder` evita tener que tratar con constructores complejos.
+      - Declaramos nuestro `builder` como una `inner static class`. Es decir, nuestro `builder` está contenido dentro de la clase cuyo objeto va a construir. Como es una clase interna, puede usar los métodos setter private.
+      - Seguimos teniendo métodos para construir las partes de nuestro objeto.
+      - Algo que también es común, pero no obligatorio, es un método estático dentro de nuestra clase `Product`, llamado `getBuilder()`, que devuelve una nueva instancia de nuestro `builder`. 
+    - `Client`: Es nuestra clase principal con el rol de `Director` que usa el método estático `getBuilder()`.
+
+#### Builder - Implementation & Design Considerations
+
+- Consideraciones de la implementación
+  - Podemos crear fácilmente una clase inmutable implementando `builder` como una `inner static class`. Esta forma de implementación es usada muy frecuentemente incluso aunque la inmutabilidad no sea lo que se esté buscando.
+- Consideraciones de diseño
+  - El rol de `director` no se suele implementar como una clase separada. Típicamente, el consumer de la instancia del objeto o el cliente toman ese rol.
+  - Un `Abstract builder` tampoco es requerido si el `product` mismo no es parte de ninguna jerarquía de herencia. Se puede crear directamente el `concrete builder`.
+  - Si tenemos el problema de "muchos argumentos en el constructor", este es una buena indicación de que el patrón `builder` puede ser de ayuda.
+
+#### Builder - Examples
+
+Vamos a ver aplicaciones del mundo real donde se ha aplicado el patrón de diseño `builder`. En concreto, vamos a ver clases que vienen en el JDK o clases que están presentes en Spring.
+
+- La clase `java.lang.StringBuilder` al igual que otras clases buffer en el paquete `java.nio`, como `ByteBuffer`, `CharBuffer` son ejemplos típicos de patrón `builder`.
+  - Aunque estos son ejemplos del patrón `builder`, no cuadran al 100% con la definición de `GoF` (libro de Gang Of Four). Estas clases nos permiten construir un objeto final mediante pasos, proveyendo solo una parte de un objeto final en cada paso. En este sentido, sí que pueden verse como una implementación del patrón `builder`.
+  - Así que `StringBuilder` satisface el propósito del patrón `builder`. Sin embargo, cuando empezamos a mirar la estructura de `StringBuilder`, vemos que algo no cuadra. La definición de `GoF` también indica que `builder` tiene el potencial de construir diferentes representaciones de la interface de `product` usando los mismos pasos (`product` puede tener muchas subclases que pueden construirse usando nuestro `builder` con los mismos pasos)
+- Un ejemplo de patrón `builder` que si lo es al 100% es la clase de Java 8 `java.util.Calendar.Builder`.
+
+![alt Builder Example - Calendar](./images/11-BuilderCalendar.png)
+
+#### Builder - Comparison with Prototype
+
+- Builder
+  - Tenemos constructores complejos y `builder` nos permite trabajar con ese constructor.
+  - Podemos crear `builder` como una clase separada, lo que nos permite trabajar con código legacy.
+- Prototype
+  - Nos permite evitar el uso de un constructor, ya que usa el método `clone()` para crear objetos.
+  - En Java, este patrón trabaja usando el método `clone()`, y necesitaremos modificar el código existente, por lo que puede haber problemas con código legacy.
+
+#### Builder - Pitfalls
+
+Cuando hablamos de trampas de un patrón de diseño, estamos considerando cosas como el número de nuevas clases que tenemos que añadir, el impacto o esfuerzo requerido para refactorizar código existente, la complejidad para comprender un patrón. 
+
+Teniendo en cuenta estas consideraciones, si patrón `builder` se implementa y se usa correctamente, entonces no tiene ningún problema.
+
+Pero hay algunos problemas que podemos encontrarnos cuando trabajamos con este patrón:
+
+- Es un poco complejo para nuevos programadores, principalmente debido al `method chaining`, donde los métodos de `builder` devuelven un objeto del mismo `builder`.
+- Existe la posibilidad de un objeto parcialmente inicializado. El código del usuario puede asignar ninguna o algunas de las propiedades, usando los metodos `withXXX` y luego llamar al método `build()`. Si propiedades obligatorias no se asignan, el método `build()` debería proveer valores por defecto, o lanzar excepciones.

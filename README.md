@@ -2,11 +2,17 @@
 
 Del curso de Udemy: https://www.udemy.com/course/design-patterns-in-java-concepts-hands-on-projects
 
+Documentación del curso:
+
+[SOLID](./SOLID+Design+Principles.pdf)
+
+[Design Pattern](./Design+Patterns+in+Java+-+Summary+v2.pdf)
+
 ## SOLID Design Principles
 
 Vamos a hablar de los principios SOLID.
 
-SOLID es un acronimo que representa cinco principios de diseño.
+SOLID es un acrónimo que representa cinco principios de diseño.
 
 - Single Responsibility Principle.
 - Open / Closed Principle.
@@ -115,3 +121,65 @@ Ver proyecto `design-patterns-playground`:
           - `Formatter`: Solo para completar la app.
           - `JSONFormatter`: Solo para completar la app.
           - `Main`: Clase principal para las pruebas. Crea y pasa las instancias de `Formatter` y `PrintWritter`.
+
+## Design Patterns
+
+Los patrones de diseño se agrupan en:
+
+- Creacionales: Dan soluciones a problemas comunes que tienen que ver con el proceso de creación de objetos de clases.
+- Estructurales: Dan soluciones a problemas de como se organizan o componen las clases y los objetos para proveer funcionalidades.
+  - Cuando indico componer quiero decir que podemos añadir otro objeto a nuestro objeto ya existente.
+- Comportamiento: Describen como las clases y los objetos interaccionan y se comunican entre ellos, y como podemos diseñar la interacción entre grupos de objetos para poder derivar una funcionalidad, o conseguir el objetivo deseado con esos objetos.
+
+Una vez que comprendemos como se crean estos grupos y lo que representan, es más fácil recordar donde pertenece cada patrón.
+
+## Creational Design Patterns
+
+Los patrones de diseño creacionales tratan con la creación de objetos de clases.
+
+¿Por qué necesitamos patrones de diseño para crear un objeto de una clase? ¿No podemos usar el operador `new` y ya está?
+
+Si, pero hay muchos requisitos adicionales que tienen lugar cuando estamos desarrollando una aplicación real.
+
+Por ejemplo, nuestro objeto podría necesitar muchos otros objetos antes de que pueda crearse, o puede necesitar muchos pasos para poder crearse, como leer data de un fichero o hacer una query para leer de BD y de ahí crear el objeto final.
+
+Otro requerimiento posible es que solo pueda existir un objeto de esa clase en toda la aplicación, porque esa clase puede ser una configuración.
+
+Estos son los patrones de diseño creacionales que vamos a ver en el curso:
+
+- Builder
+- Simple Factory
+- Factory Method
+- Prototype
+- Singleton
+- Abstract Factory
+- Object Pool
+
+### Builder
+
+[Builder](./design-patterns-playground/README.md#builder)
+
+Ver proyecto `design-patterns-playground`:
+
+- `sec02`
+    - `builder`
+        - `Address`: Clase normal usada en `User` para almacenar información de la dirección del usuario.
+        - `User`: Clase Entity usada para construir el DTO. Este objeto lo obtendríamos desde una capa de persistencia, con data almacenada en BD.
+        - `UserDTO`: Interface DTO.
+        - `UserWebDTO`: Implementación de `UserDTO`. Cumple el rol `Product`, producto final a obtener del patrón `builder`. Vamos, lo que queremos construir.
+        - `UserDTOBuilder`: Es una interface que provee los métodos necesarios para montar cada "parte" de nuestro objeto `UserDTO`. Es el rol `Builder`.
+            - Cada uno de estos métodos devuelve una referencia a sí mismo (al builder), así que usaremos este tipo de implementación para usar `method chaining`.
+            - El método `build()` es el que monta el objeto final.
+        - `UserWebDTOBuilder`: Es una implementación concreta de `UserDTOBuilder`. Es el rol `ConcreteBuilder`.
+            - Es lo que realmente construimos en esta clase.
+        - `Client`: Es nuestra clase principal con el rol de `Director` que usa el builder `UserDTOBuilder`.
+  - `builder2`: Otra implementación de `builder` muy usada en el mundo real.
+      - `Address`: Clase normal usada en `User` para almacenar información de la dirección del usuario.
+      - `User`: Clase Entity usada para construir el DTO. Este objeto lo obtendríamos desde una capa de persistencia, con data almacenada en BD.
+      - `UserDTO`: Interface DTO. Cumple el rol de `Product`. Queremos crear objetos de esta clase.
+          - No tenemos constructor, pero vamos a construir una instancia inmutable, usando métodos getter public y métodos setter private.
+          - Es decir, esta forma de implementar el `builder` evita tener que tratar con constructores complejos.
+          - Declaramos nuestro `builder` como una `inner static class`. Es decir, nuestro `builder` está contenido dentro de la clase cuyo objeto va a construir. Como es una clase interna, puede usar los métodos setter private.
+          - Seguimos teniendo métodos para construir las partes de nuestro objeto.
+          - Algo que también es común, pero no obligatorio, es un método estático dentro de nuestra clase `Product`, llamado `getBuilder()`, que devuelve una nueva instancia de nuestro `builder`.
+      - `Client`: Es nuestra clase principal con el rol de `Director` que usa el método estático `getBuilder()`.
