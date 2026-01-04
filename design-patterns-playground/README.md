@@ -486,3 +486,93 @@ Pero hay algunos problemas que podemos encontrarnos cuando trabajamos con este p
 
 - Es un poco complejo para nuevos programadores, principalmente debido al `method chaining`, donde los métodos de `builder` devuelven un objeto del mismo `builder`.
 - Existe la posibilidad de un objeto parcialmente inicializado. El código del usuario puede asignar ninguna o algunas de las propiedades, usando los metodos `withXXX` y luego llamar al método `build()`. Si propiedades obligatorias no se asignan, el método `build()` debería proveer valores por defecto, o lanzar excepciones.
+
+### Simple Factory
+
+#### Simple Factory - Introduction
+
+¿Qué problema resuelve `Simple Factory`? Varios tipos pueden instanciarse y la elección está basada en algunos criterios sencillos.
+
+En este ejemplo vemos un típico caso de uso donde `simple factory` es normalmente usado.
+
+```java
+if (key.equalsIgnoreCase("pudding")) {
+    // crear objeto pudding
+} else if (key.equalsIgnoreCase("cake")) {
+    // crear objeto cake
+}
+```
+
+¿En qué consiste `simple factory`?
+
+- Dado el ejemplo de arriba, `simple factory` consiste en mover la lógica de instanciación a una clase separada, y más comúnmente a un método estático de esa clase separada, ya que no necesitamos ninguna información de estado.
+- Muchos desarrolladores no consideran `simple factory` un patrón de diseño, ya que es sencillamente un método que encapsula instanciaciones de objetos. Nada complejo va en ese método, solo comparamos una variable y, dependiendo de su valor, creamos un tipo de objeto diferente.
+  - Realmente estamos estudiando `simple factory` porque es normalmente confundido con el patrón de diseño `factory method`.
+- Usaremos `simple factory` si tenemos más de una opción para instanciar un objeto y se usa una lógica sencilla (comparar una variable con un valor por ejemplo) para elegir la clase correcta a partir de la cual instanciar ese objeto.
+
+**UML**
+
+![alt Simple Factory UML](./images/12-SimpleFactoryUML.png)
+
+- `Product`
+  - Toma el rol `Product`.
+  - Puede ser una interface o clase abstracta.
+  - Necesitamos objetos de esta clase / subclases.
+  - Muchas subclases pueden implementar esta interface o clase abstracta, en el diagrama vemos `ProductA` y `ProductB`.
+- `SimpleFactory`
+  - Toma el rol `Simple Factory`.
+  - Provee un método estático que suele aceptar un parámetro y, dependiendo del valor de ese parámetro, obtendremos una instancia de las subclases del producto.
+
+#### Simple Factory - Implementation Steps
+
+Vamos a ver los pasos necesarios para implementar `simple factory`.
+
+- Comenzamos creando una clase separada para nuestro `simple factory`.
+  - Añadir un método que devuelva la instancia del objeto deseado.
+    - Este método suele declararse estático y aceptará algún argumento que se usará para decidir de que clase instanciar el objeto.
+    - Se pueden proveer argumentos adicionales que se usará para instanciar objetos.
+
+#### Simple Factory - Implementation
+
+En `src/java/com/jmunoz` creamos los paquetes/clases siguientes:
+
+- `sec03`
+  - `simplefactory`
+    - `Post`: Es nuestra clase abstracta con rol `Product`. Representa un artículo que es publicado en un sitio web.
+      - Se crean varias subclases de este rol `Product`.
+    - `NewsPost`: Subclase de `Post`. Representa un artículo de noticias que es publicado es nuestro sitio web.
+    - `BlogPost`: Subclase de `Post`. Representa un artículo publicado en nuestro blog.
+    - `ProductPost`: Subclase de `Post`. Representa una página de información de un producto publicado en nuestro sitio web.
+    - `PostFactory`: Toma el rol `Simple Factory`. Es la clase donde vamos a implementar el patrón `simple factory`.
+      - Esta es la clase que se desarrolla en esta lección.
+    - `Client`: Clase que usa nuestra implementación de `simple factory`.
+
+#### Simple Factory - Implementation & Design Considerations
+
+- Consideraciones de la implementación:
+  - `Simple Factory` puede ser un método en una clase existente. Sin embargo, crear una clase separada permite a otras partes del código usar `simple factory` más fácilmente.
+  - `Simple Factory` no necesita mantener estado, y por eso normalmente es mejor crear un método estático para instanciar nuestros objetos.
+- Consideraciones de diseño:
+  - `Simple Factory` puede utilizar a su vez otros patrones de diseño, como `builder`, para construir objetos.
+  - En el caso de que se quieran especializar las subclases de `simple factory`, necesitaremos el patrón de diseño `factory method`.
+
+#### Simple Factory - Example
+
+Vamos a ver ejemplos del mundo real donde se usa `simple factory`.
+
+- La clase `java.text.NumberFormat` tiene el método `getInstance()`, que es un ejemplo de `simple factory`.
+
+- ![alt Simple Factory - NumberFormat](./images/13-SimpleFactoryNumberFormat.png)
+
+#### Simple Factory - Comparison with Factory Method
+
+- `Simple Factory`
+  - Sencillamente, movemos la lógica de instanciación fuera del código del cliente, normalmente a un método estático.
+  - Conoce todas las clases cuyos objetos puede crear. 
+- `Factory Method`
+  - Es más útil cuando queremos delegar la decisión de creación de objetos a subclases.
+  - `Factory Method` no conoce por adelantado todas las subclases del producto que pueden crearse porque la decisión sobre qué clase instanciarse se delega a las subclases.
+
+#### Simple Factory - Pitfalls
+
+- El criterio usado por `simple factory` para decidir qué objeto instanciar puede evolucionar en el tiempo, convirtiéndose en algo muy complejo. Si llegamos a esta situación, mejor usar el patrón de diseño `factory method`.

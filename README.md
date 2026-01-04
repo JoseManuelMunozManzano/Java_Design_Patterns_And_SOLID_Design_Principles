@@ -183,3 +183,20 @@ Ver proyecto `design-patterns-playground`:
           - Seguimos teniendo métodos para construir las partes de nuestro objeto.
           - Algo que también es común, pero no obligatorio, es un método estático dentro de nuestra clase `Product`, llamado `getBuilder()`, que devuelve una nueva instancia de nuestro `builder`.
       - `Client`: Es nuestra clase principal con el rol de `Director` que usa el método estático `getBuilder()`.
+
+### Simple Factory
+
+[Simple Factory](./design-patterns-playground/README.md#simple-factory)
+
+Ver proyecto `design-patterns-playground`:
+
+- `sec03`
+    - `simplefactory`
+        - `Post`: Es nuestra clase abstracta con rol `Product`. Representa un artículo que es publicado en un sitio web.
+            - Se crean varias subclases de este rol `Product`.
+        - `NewsPost`: Subclase de `Post`. Representa un artículo de noticias que es publicado es nuestro sitio web.
+        - `BlogPost`: Subclase de `Post`. Representa un artículo publicado en nuestro blog.
+        - `ProductPost`: Subclase de `Post`. Representa una página de información de un producto publicado en nuestro sitio web.
+        - `PostFactory`: Toma el rol `Simple Factory`. Es la clase donde vamos a implementar el patrón `simple factory`.
+            - Esta es la clase que se desarrolla en esta lección.
+        - `Client`: Clase que usa nuestra implementación de `simple factory`.
