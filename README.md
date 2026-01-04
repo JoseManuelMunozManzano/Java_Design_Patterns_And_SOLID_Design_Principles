@@ -200,3 +200,26 @@ Ver proyecto `design-patterns-playground`:
         - `PostFactory`: Toma el rol `Simple Factory`. Es la clase donde vamos a implementar el patrón `simple factory`.
             - Esta es la clase que se desarrolla en esta lección.
         - `Client`: Clase que usa nuestra implementación de `simple factory`.
+
+### Factory Method
+
+[Factory Method](./design-patterns-playground/README.md#factory-method)
+
+Ver proyecto `design-patterns-playground`:
+
+- `sec04`
+    - `factorymethod`
+        - `message`: Paquete con las clases que se quieren instanciar.
+            - `Message`: Toma el rol `Product`. Es una clase abstracta y vamos a crear objetos de las subclases de `Message`.
+            - `JSONMessage`: Toma el rol `Concrete Product`. Clase concreta que extiende de `Message`.
+            - `TextMessage`: Toma el rol `Concrete Product`. Clase concreta que extiende de `Message`.
+        - `MessageCreator`: Toma el rol `Creator`.
+            - Clase abstracta que provee un `factory method` abstracto.
+            - Esta clase se codifica en esta lección.
+        - `JSONMessageCreator`: Toma el rol `Concrete Creator`.
+            - Clase que implementa `MessageCreator` haciendo `override` del `factory method` y devolviendo un objeto de tipo `JSONMessage`.
+            - Esta clase se codifica en esta lección.
+        - `TextMessageCreator`: Toma el rol `Concrete Creator`.
+            - Clase que implementa `MessageCreator` haciendo `override` del `factory method` y devolviendo un objeto de tipo `TextMessage`.
+            - Esta clase se codifica en esta lección.
+        - `Client`: Tiene un método `main()` donde usamos el patŕon de diseño `factory method`.

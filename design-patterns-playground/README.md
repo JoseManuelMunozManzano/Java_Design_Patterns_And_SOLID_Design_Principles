@@ -562,7 +562,7 @@ Vamos a ver ejemplos del mundo real donde se usa `simple factory`.
 
 - La clase `java.text.NumberFormat` tiene el método `getInstance()`, que es un ejemplo de `simple factory`.
 
-- ![alt Simple Factory - NumberFormat](./images/13-SimpleFactoryNumberFormat.png)
+![alt Simple Factory - NumberFormat](./images/13-SimpleFactoryNumberFormat.png)
 
 #### Simple Factory - Comparison with Factory Method
 
@@ -576,3 +576,108 @@ Vamos a ver ejemplos del mundo real donde se usa `simple factory`.
 #### Simple Factory - Pitfalls
 
 - El criterio usado por `simple factory` para decidir qué objeto instanciar puede evolucionar en el tiempo, convirtiéndose en algo muy complejo. Si llegamos a esta situación, mejor usar el patrón de diseño `factory method`.
+
+### Factory Method
+
+#### Factory Method - Introduction
+
+El patrón de diseño creacional `factory method` es uno de los más versátiles.
+
+¿Por qué usamos `factory method`?
+
+- Queremos mover la lógica de creación de objetos, que puede estar dispersa en nuestro código, para encapsularla en una clase separada.
+- Es parecido a `simple factory`, pero `factory method` añade algo nuevo:
+  - Cuando usamos el patrón `factory method`, no conocemos por adelantado que clase necesitamos instanciar. Podemos añadir nuevas clases en el futuro, que pueden ser instanciadas sin afectar a nuestro código cliente.
+  - Se delega a las subclases la decisión de que objeto instanciar, esto se consigue haciendo `override` del `factory method` en las subclases.
+
+**UML**
+
+![alt Factory Method - UML](./images/14-FactoryMethodUML.png)
+
+- `Product`: Toma el rol `Product`.
+  - Es la clase base o interface de productos creados por `factory method`, es decir, vamos a crear objetos de subclases de esta interface o clase base de `Product`.
+- `ConcreteProductA` y `ConcreteProductB`: Toman el rol `Concrete Product`.
+  - Son las implementaciones de la interface o clase base de `Product`.
+- `Creator`: Toma el rol `Creator`.
+  - Declara un `factory method` abstracto, es decir, es donde el patrón de diseño `factory method` comienza a implementarse.
+  - Adicionalmente, esta clase puede usar `factory method` para crear la instancia final de `Product`.
+- `ConcreteCreatorA` y `ConcreteCreatorB`: Toman el rol de `Concrete Creator`.
+  - Implementan (hacen `override`) `factory method` y devuelven una instancia concreta de `Product`.
+
+#### Factory Method - Implementation Steps
+
+- Comenzamos creando una clase para nuestro `Creator`.
+  - `Creator` puede ser ya una clase concreta si puede proveer un objeto por defecto en su `factory method`, o puede ser una clase abstracta con un `factory method` abstracto.
+  - Las implementaciones de la clase abstracta del `Creator` harán `override` del `factory method` abstracto y devolverán un objeto concreto.
+
+#### Factory Method - Example UML
+
+![alt Factory Method - Example UML](./images/15-FactoryMethod-ExampleUML.png)
+
+Indico el orden en que se implementa el patrón de diseño:
+
+- `Message`: Clase que representa un mensaje en nuestro sistema. Toma el rol `Product`.
+  - Es una interface, clase abstracta o también puede ser una clase base.
+  - Queremos crear objetos de esta clase o de sus subclases.
+- `TextMessage`: Toma el rol `Concrete Product`.
+  - Subclase de `Message`. El contenido del mensaje se almacena como texto.
+- `JSONMessage`: Toma el rol `Concrete Product`.
+  - Subclase de `Message`. El contenido del mensaje se almacena como texto en formato JSON.
+- `MessageCreator`: Toma el rol de `Creator`.
+  - Es una clase abstracta que tiene definido un `factory method` donde se crearán objetos de alguna de las subclases arriba descritas.
+- `TextMessageCreator`: Toma el rol `Concrete Creator`.
+  - Implementación de `MessageCreator`.
+  - Hace `override` del `factory method` que existe en `MessageCreator` para instanciar un objeto del tipo `TextMessage`.
+- `JSONMessageCreator`: Toma el rol `Concrete Creator`. 
+  - Implementación de `MessageCreator`.
+  - Hace `override` del `factory method` que existe en `MessageCreator` para instanciar un objeto del tipo `JSONMessage`.
+
+#### Factory Method - Implementation
+
+En `src/java/com/jmunoz` creamos los paquetes/clases siguientes:
+
+- `sec04`
+  - `factorymethod`
+    - `message`: Paquete con las clases que se quieren instanciar.
+      - `Message`: Toma el rol `Product`. Es una clase abstracta y vamos a crear objetos de las subclases de `Message`.
+      - `JSONMessage`: Toma el rol `Concrete Product`. Clase concreta que extiende de `Message`.
+      - `TextMessage`: Toma el rol `Concrete Product`. Clase concreta que extiende de `Message`.
+    - `MessageCreator`: Toma el rol `Creator`.
+      - Clase abstracta que provee un `factory method` abstracto.
+      - Esta clase se codifica en esta lección.
+    - `JSONMessageCreator`: Toma el rol `Concrete Creator`.
+      - Clase que implementa `MessageCreator` haciendo `override` del `factory method` y devolviendo un objeto de tipo `JSONMessage`.
+      - Esta clase se codifica en esta lección.
+    - `TextMessageCreator`: Toma el rol `Concrete Creator`.
+      - Clase que implementa `MessageCreator` haciendo `override` del `factory method` y devolviendo un objeto de tipo `TextMessage`.
+      - Esta clase se codifica en esta lección.
+    - `Client`: Tiene un método `main()` donde usamos el patŕon de diseño `factory method`.
+
+#### Factory Method - Implementation & Design Considerations
+
+- Consideraciones de implementación:
+  - El rol `Creator` puede ser una clase concreta y proveer una implementación por defecto para la implementación del `factory method`. En estos casos se creará un objeto `default` en el `Creator`.
+  - También podemos aceptar argumentos adicionales como en `simple factory` para poder seleccionar entre distintos tipos de objeto. Las subclases harán `override` del `factory method` para, en función de diferentes criterios, crear diferentes objetos.
+- Consideraciones del diseño:
+  - En el patrón `factory method`, la jerarquía del rol `Creator` refleja la jerarquía del rol `Product`. Típicamente, tendremos un rol `Concrete Creator` por cada rol `Concrete Product`.
+  - El patrón de diseño `template method` suele hacer uso de `factory methods`.
+  - Otro patrón de diseño creacional llamado `abstract factory` también hace uso del patrón de diseño `factory method`.
+
+#### Factory Method - Example
+
+Vamos a ver ejemplos del mundo real donde se usa `factory method`.
+
+- Las clases `java.util.Collection` y `java.util.AbstractCollection` tienen un método abstracto llamado `iterator()`. Este método es un ejemplo de `factory method`.
+  - Las implementaciones `ArrayList`, `LinkedList`, etc., son las subclases de `AbstractCollection` que devuelven la instancia concreta al código del cliente.
+
+![alt Factory Method - Collection](./images/16-FactoryMethodCollection.png)
+
+Recordar que la característica más definitoria del patrón de diseño `factory method` es que las **subclases proveen la instancia**.
+
+Por tanto, métodos estáticos que devuelvan instancias de objetos NO son técnicamente `factory methods` tal y como se definen en `GoF`.
+
+#### Factory Method - Pitfalls
+
+- Es complejo de implementar. Hay más clases involucradas y necesitan `unit testing`.
+- Se necesita comenzar con el patrón de diseño `factory method` desde el principio, es decir, no es fácil refactorizar código existente al patŕon `factory method`.
+- A veces, este patrón nos fuerza a hacer subclases solo para crear las instancias apropiadas. Como ya vimos, un `Concrete Creator` por cada `Concrete Product`.
