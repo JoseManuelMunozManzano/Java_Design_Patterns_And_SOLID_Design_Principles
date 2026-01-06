@@ -681,3 +681,114 @@ Por tanto, métodos estáticos que devuelvan instancias de objetos NO son técni
 - Es complejo de implementar. Hay más clases involucradas y necesitan `unit testing`.
 - Se necesita comenzar con el patrón de diseño `factory method` desde el principio, es decir, no es fácil refactorizar código existente al patŕon `factory method`.
 - A veces, este patrón nos fuerza a hacer subclases solo para crear las instancias apropiadas. Como ya vimos, un `Concrete Creator` por cada `Concrete Product`.
+
+### Prototype
+
+#### Prototype - Introduction
+
+¿Qué es `prototype`?
+
+- Imaginemos que tenemos un objeto complejo cuya creación es una operación muy costosa. Para crear más instancias de esa clase, podemos usar como prototipo una instancia ya existente.
+  - Costosa puede ser en términos de rendimiento, de mucho cálculo o uso de recursos externos que no están bajo nuestro control.
+- El patrón de diseño `prototype` nos permite hacer copias de un objeto existente, evitando tener que crear esos objetos desde cero.
+
+**UML**
+
+![alt Prototype - UML](./images/17-PrototypeUML.png)
+
+En Java, este patrón de diseño es muy fácil de implementar.
+
+- `Prototype`: Tiene el rol de `Prototype`.
+  - Objetos de esta clase nos servirán para usarlos como prototipo y poder crear múltiples copias.
+  - Clase abstracta donde se declara un método para poder clonar un objeto a sí mismo.
+    - En Java la operación que nos permite crear copias es la operación `clone`.
+    - La clase Object de Java ya tiene definido un método `protected` llamado `clone()`, cuyo objetivo es hacer copias de un objeto existente.
+- `ConcretePrototypeA` y `ConcretePrototypeB`: Tienen el rol de `Concrete Prototype`.
+  - Implementaciones de `Prototype` que implementan el método `clone()`.
+- `Client`: Tiene el rol de `Client`.
+  - Crea nuevas instancias usando el método `clone()` del prototipo.
+
+#### Prototype - Implementation Steps
+
+Los pasos para implementar el patrón de diseño `prototype` son:
+
+- Comenzamos creando una clase que será un prototipo.
+  - La clase debe implementar la interface `Cloneable`.
+    - `Cloneable` es una interface de Java incorporada. Es una `marker interface`, lo que significa que es una interface que NO define ningún método, pero que sirve como un marcador o indicación de la capacidad de nuestra clase. Por tanto, si implementamos `Cloneable` estamos diciendo a otro código que la clase soporta la operación `clone`.
+  - La clase debe sobreescribir (`override`) el método `clone()` y devolver una copia de sí mismo.
+    - El método `clone()` es un método `protected` de la clase `Object` pero, al sobreescribir este método, lo haremos `public`.
+  - La firma del método debe declarar `CloneNotSupportedException` en la cláusula `throws` para dar a las subclases la posibilidad de decidir si soporta la clonación.
+- La implementación del método `clone()` debe considerar las copias `deep` y `shallow` y elegir la que sea aplicable.
+  - La copia `shallow` consiste en copiar las propiedades del objeto a un nuevo objeto.
+  - La copia `deep` consiste en crear todos los objetos que son necesarios para nuestro objeto `prototype`.
+
+#### Prototype - Example UML
+
+![alt Prototype - Example UML](./images/18-Prototype-ExampleUML.png)
+
+Indico el orden en que se implementa el patrón de diseño:
+
+- `GameUnit`: Toma el rol `Prototype`. Objetos de esta clase soportarán la operación de clonado.
+  - Tenemos los métodos `clone()`, `initialize()` y `resetUnit()`.
+- `Swordsman` y `General`: Toman el rol `Concrete Prototype`. Son las subclases que implementan `GameUnit`.
+  - `Swordsman` soporta la clonación y `General` no soporta la operación de clonación.
+- `Client`: Toma el rol `Client`.
+  - Crea el objeto inicial y luego usa el patrón de diseño `prototype` para clonar a partir de ese objeto inicial ya existente.
+
+#### Prototype - Implementation
+
+En `src/java/com/jmunoz` creamos los paquetes/clases siguientes:
+
+- `sec05`
+  - `prototype` 
+    - `GameUnit`: Es la clase base de todas las clases de nuestro prototipo. Es el rol `Prototype`.
+      - Representa una unidad en un juego que se juega en un mapa.
+      - Tiene una sola propiedad `position` que representa una posición en un mapa.
+      - Esta clase ya viene medio desarrollada y lo que se implementa es la parte del patrón de diseño `prototype`.
+        - En concreto, se indica que implementa la interface `Cloneable` y se sobreescribe el método `clone()`.
+    - `Swordsman`: Implementación de `GameUnit`. Es el rol `Concrete Prototype`.
+      - Tiene una propiedad llamada `state`, referida al estado actual de un espadachín concreto.
+      - Soporta la clonación.
+      - Esta clase ya viene medio desarrollada y lo que se implementa es el método `reset()`.
+    - `General`: Implementación de `GameUnit`. Es el rol `Concrete Prototype`.
+      - Tiene una propiedad llamada `state`, referida al estado actual de un general concreto.
+      - No soporta la clonación porque solo puede haber un general en nuestro juego.
+      - Esta clase ya viene medio desarrollada y lo que se implementa son los métodos `reset()` y `clone()`.
+    - `Point3D`: Clase que aporta su tipo a GameUnit. No es realmente importante.
+    - `Client`: Creamos la instancia inicial de `Swordsman` usando su constructor y usamos el patrón de diseño `prototype`. Es el rol `Client`.
+
+#### Prototype - Implementation & Design
+
+- Consideraciones de implementación:
+  - Prestar atención a las copias `deep` y `shallow` de referencias.
+    - Para objetos inmutables como parte del estado de `prototype`, hacer `shallow copy`, es decir, la copia puede mantener el puntero a esos mismos objetos.
+    - Para objetos mutables como parte del estado de `prototype`. es muy posible que necesitemos hacer `deep copy`.
+  - Asegurarse de resetear el estado del objeto antes de devolver el `prototype`. Es una buena idea implementar este método para permitir a las subclases que puedan inicializarse ellas mismas.
+  - El método `clone()` es `protected` en la clase `Object` y debe sobreescribirse como `public` para poder ser llamado fuera de esta clase.
+  - `Cloneable` es una interface `marker`, es decir, que no define ningún método, pero indica que la clase soporta la operación de clonado.
+- Consideraciones del diseño:
+  - El patrón de diseño `prototype` es muy útil cuando tenemos objetos muy grandes donde la mayoría del estado no cambia entre instancias y se puede identificar fácilmente que parte de ese estado es inmutable y que parte cambia para las varias instancias.
+  - Un registro `prototype` es una clase donde se pueden registrar varios prototipos en los que otro código puede acceder y clonar instancias. Esto resuelve el problema de obtener acceso a la instancia inicial desde cualquier parte del código.
+  - Los prototipos son muy útiles cuando trabajan junto a los patrones de diseño `Composite` y `Decorator`.
+
+#### Prototype - Example
+
+Vamos a ver ejemplos del mundo real donde se usa `prototype`.
+
+- El método `Object.clone()` es un ejemplo de `prototype` presente en la biblioteca de clases de Java.
+- Este método es proveído por Java y puede clonar objetos existentes, permitiendo a cualquier objeto actuar como prototipo. Las clases siguen necesitando implementar la interface `Cloneable`, pero el método hace el trabajo de clonar el objeto.
+
+#### Prototype - Comparison with Singleton
+
+- `Prototype`
+  - Devolvemos una copia de una instancia, es decir, obtenemos una instancia diferente.
+  - Algunos o incluso todos los estados de instancias creados con el patrón de diseño `prototype` pueden ser diferentes, ya que el estado puede ser mutable.
+- `Singleton`
+  - Devolvemos siempre la misma instancia.
+  - Ya que es el mismo objeto el que se devuelve, el estado es siempre el mismo.
+
+#### Prototype - Pitfalls
+
+- La usabilidad depende del número de propiedades en el estado que son inmutables o a las que se les puede hacer `shallow copy`. Un objeto donde el estado se compone de una gran cantidad de objetos mutables es complicado de clonar porque tenemos que proveer `deep copy` de todos esos objetos mutables.
+- En Java, la operación `clone` por defecto solo realiza `shallow copy`, así que si necesitamos `deep copy` tendremos que implementarla.
+- Puede que las subclases no puedan soportar la operación `clone` y el código se vuelva más complicado al tener que codificar situaciones donde una implementación no soporte dicha operación `clone`, lanzando la excepción `CloneNotSupportedException`.

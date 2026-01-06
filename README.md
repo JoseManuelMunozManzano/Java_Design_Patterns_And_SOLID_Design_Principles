@@ -223,3 +223,27 @@ Ver proyecto `design-patterns-playground`:
             - Clase que implementa `MessageCreator` haciendo `override` del `factory method` y devolviendo un objeto de tipo `TextMessage`.
             - Esta clase se codifica en esta lección.
         - `Client`: Tiene un método `main()` donde usamos el patŕon de diseño `factory method`.
+
+### Prototype
+
+[Prototype](./design-patterns-playground/README.md#protoype)
+
+Ver proyecto `design-patterns-playground`:
+
+- `sec05`
+    - `prototype`
+        - `GameUnit`: Es la clase base de todas las clases de nuestro prototipo. Es el rol `Prototype`.
+            - Representa una unidad en un juego que se juega en un mapa.
+            - Tiene una sola propiedad `position` que representa una posición en un mapa.
+            - Esta clase ya viene medio desarrollada y lo que se implementa es la parte del patrón de diseño `prototype`.
+                - En concreto, se indica que implementa la interface `Cloneable` y se sobreescribe el método `clone()`.
+        - `Swordsman`: Implementación de `GameUnit`. Es el rol `Concrete Prototype`.
+            - Tiene una propiedad llamada `state`, referida al estado actual de un espadachín concreto.
+            - Soporta la clonación.
+            - Esta clase ya viene medio desarrollada y lo que se implementa es el método `reset()`.
+        - `General`: Implementación de `GameUnit`. Es el rol `Concrete Prototype`.
+            - Tiene una propiedad llamada `state`, referida al estado actual de un general concreto.
+            - No soporta la clonación porque solo puede haber un general en nuestro juego.
+            - Esta clase ya viene medio desarrollada y lo que se implementa son los métodos `reset()` y `clone()`.
+        - `Point3D`: Clase que aporta su tipo a GameUnit. No es realmente importante.
+        - `Client`: Creamos la instancia inicial de `Swordsman` usando su constructor y usamos el patrón de diseño `prototype`. Es el rol `Client`.
