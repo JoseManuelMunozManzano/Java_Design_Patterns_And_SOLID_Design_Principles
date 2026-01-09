@@ -792,3 +792,161 @@ Vamos a ver ejemplos del mundo real donde se usa `prototype`.
 - La usabilidad depende del número de propiedades en el estado que son inmutables o a las que se les puede hacer `shallow copy`. Un objeto donde el estado se compone de una gran cantidad de objetos mutables es complicado de clonar porque tenemos que proveer `deep copy` de todos esos objetos mutables.
 - En Java, la operación `clone` por defecto solo realiza `shallow copy`, así que si necesitamos `deep copy` tendremos que implementarla.
 - Puede que las subclases no puedan soportar la operación `clone` y el código se vuelva más complicado al tener que codificar situaciones donde una implementación no soporte dicha operación `clone`, lanzando la excepción `CloneNotSupportedException`.
+
+### Abstract Factory
+
+#### Abstract Factory - Introduction
+
+¿Qué es `abstrac factory` y donde podemos usarlo?
+
+- Se usa `Abstract Factory` cuando tenemos dos o más objetos que están diseñados para trabajar juntos formando un kit o set y puede haber muchos sets o kits que pueden ser creados por código cliente.
+- La intención tras `Abstract Factory` es separar o aislar el código cliente de implementaciones concretas de objetos, formando tal set, y también del código que crea esos sets de objetos.
+
+**UML**
+
+![Abstract Factory - UML](./images/19-AbstractFactoryUML.png)
+
+Como este UML es bastante complejo, vamos a ir directamente al ejemplo que vamos a usar para comprender este patrón.
+
+Vamos a usar un juego de ordenador de estrategia tipo Civilization para comprender para qué es útil el patrón de diseño `Abstract Factory`.
+
+![Abstract Factory - UML Game](./images/20-AbstractFactoryUMLGame.png)
+
+- `LandUnit`: Es una clase abstracta o interface.
+  - `Swordsman`: Implementación de `LandUnit` cuando estamos jugando en la época medieval.
+  - `Rifleman`: Implementación de `LandUnit` cuando estamos en la época industrial.
+- `NavalUnit`: Es una clase abstracta o interface.
+  - `Galley`: Implementación de `NavalUnit` cuando estamos jugando en la época medieval.
+    - `Swordsman` y `Galley` forman un set, es decir, trabajan juntas.
+  - `Ironclad`: Implementación de `NavalUnit` cuando estamos jugando en la época industrial.
+    - `Rifleman` y `Ironclad` forman un set, es decir, trabajan juntas.
+- `GameUnitFactory`: Es la interface `abstract factory` donde podemos codificar toda la creación de objetos.
+  - Solo define dos métodos, uno para crear `LandUnit` y otra para crear `NavalUnit`.
+  - `MedievalGameUnitFactory`: Implementación de `GameUnitFactory` que crea objetos de `Swordsman`y `Galley`, es decir, objetos que pertenecen a la época medieval.
+  - `IndustrialAgeGameUnitFactory`: Implementación de `GameUnitFactory` que crea objetos de `Rifleman`y `Ironclad`, es decir, objetos que pertenecen a la época industrial.
+
+Con esta explicación, volvemos a nuestro UML inicial.
+
+- `AbstractProductA`: Tiene el rol `Abstract Product`.
+  - Es una interface para un tipo de producto que es usado por nuestro cliente.
+- `ProductAOne` y `ProductATwo`: Tienen el rol `Concrete Product`.
+  - Implementan la interface con rol `Abstract Product`.
+- `AbstractFactory`: Tiene el rol `Abstract Factory`.
+  - Es una interface donde se definen las operaciones necesarias para crear `Abstract Product` de un tipo concreto.
+- `ConcreteFactoryA` y `ConcreteFactoryB`: Tienen el rol `Concrete Factory`.
+  - Son las implementaciones de `Abstract Factory` y crean productos de un set particular.
+- `Client`: Tiene el rol `Client`.
+  - Usa implementaciones de `Abstract Factory` para crear los distintos sets de `Abstract Product`.
+
+#### Abstract Factory - Implementation Steps
+
+Los pasos para implementar el patrón de diseño `abstract factory` son:
+
+- Empezamos estudiando los sets o kits o familias de productos que están presentes en nuestra aplicación.
+  - Crear `abstract factory` como una clase abstracta o una interface.
+  - Dentro de la interface `Abstract Factory` definir métodos abstractos que permitan al código de cliente crear los objetos.
+  - Proveer implementaciones concretas de `factory` para cada set de productos.
+- `Abstract Factory` hace uso del patrón `factory method`. Podemos pensar que `abstract factory` es un objeto con múltiples `factory methods`.
+
+#### Abstract Factory - Example UML
+
+![Abstract Factory - Example UML](./images/21-AbstractFactory-ExampleUML.png)
+
+En este ejemplo vamos a implementar un sistema en el que representamos recursos cloud que podemos suministrar con diferentes proveedores cloud, en concreto tenemos en cuenta AWS y Google Cloud.
+
+Lo importante es ver como creamos familias de objetos que están relacionadas entre sí.
+
+Indico el orden en que se implementa el patrón de diseño:
+
+- `Instance`: Toma el rol `Abstract Product`.
+  - Interface que representa un recurso de ordenador.
+- `Ec2Instance`: Toma el rol `Concrete Product`. Implementa `Instance`.
+  - Es de AWS.
+- `GoogleComputeEngineInstance`: Toma el rol `Concrete Product`. Implementa `Instance`.
+  - Es de Google.
+- `Storage`: Toma el rol `Abstract Product`.
+- `S3Storage`: Toma el rol `Concrete Product`. Implementa `Storage`.
+  - Es de AWS.
+- `GoogleCloudStorage`: Toma el rol `Concrete Product`. Implementa `Storage`.
+  - Es de Google.
+- `Client`: Toma el rol `Client` y tiene el método `main()` y recibe una petición para provisionar una máquina y se decide que tipo de proveedor usar.
+- `ResourceFactory`: Toma el rol `Abstract Factory`.
+  - Interface que provee dos `factory methods`.
+- `AwsResourceFactory`: Toma el rol `Concrete Factory`, y es una implementación de `ResourceFactory` para instanciar objetos de AWS.
+- `GoogleCloudResourceFactory`: Toma el rol `Concrete Factory`, y es una implementación de `ResourceFactory` para instanciar objetos de Google.
+
+#### Abstract Factory - Implementation
+
+En `src/java/com/jmunoz` creamos los paquetes/clases siguientes:
+
+- `sec06`
+  - `abstractfactory` 
+    - `Instance`: Interface que representa un recurso de computador que está disponible para proveedores de cloud como Amazon y Google Cloud.
+      - Se definen métodos genéricos que pueden ser llamados independientemente de la implementación que vayamos a usar.
+      - Toma el rol `Abstract Product`.
+    - `Storage`: Interface que abstrae el almacenamiento en la nube disponible desde varios proveedores de cloud.
+      - Toma el rol `Abstract Product`.
+    - `ResourceFactory`: Interface que representa nuestro `abstract factory`.
+      - Es una de las clases que vamos a codificar en esta lección.
+      - Añadimos métodos para crear objetos de los tipos `Instance` y `Storage`.
+      - Toma el rol `Abstract Factory`.
+    - `aws`: Paquete para Amazon Web services.
+      - `Ec2Instance`: Clase que implementa la interface `Instance`. Representa un recurso de computador en Amazon Cloud.
+        - Toma el rol `Concrete Product`
+      - `S3Storage`: Clase que implementa la interface `Storage`. Representa almacenamiento en Amazon Cloud.
+        - Toma el rol `Concrete Product`
+      - `AwsResourceFactory`: Clase que implementa la interface `ResourceFactory`.
+        - Es una de las clases que vamos a codificar en esta lección.
+        - Sobreescribimos los métodos de `ResourceFactory` para devolver objetos de `Ec2Instance` y `S3Storage`.
+        - Toma el rol `Concrete Factory`.
+    - `gcp`: Paquete para recursos Google Compute Engine.
+      - `GoogleComputeEngineInstance`: Clase que implementa la interface `Instance`. Representa un recurso de computador en Google Cloud.
+        - Toma el rol `Concrete Product`
+      - `GoogleCloudStorage`: Clase que implementa la interface `Storage`. Representa almacenamiento en Google Cloud.
+        - Toma el rol `Concrete Product`
+      - `GoogleResourceFactory`: Clase que implementa la interface `ResourceFactory`.
+        - Es una de las clases que vamos a codificar en esta lección.
+        - Sobreescribimos los métodos de `ResourceFactory` para devolver objetos de `GoogleComputeEngineInstance` y `GoogleCloudStorage`.
+        - Toma el rol `Concrete Factory`.
+      - `Client`: Clase que sirve para usar nuestro `Abstract Factory`.
+        - Es una de las clases que vamos a codificar en esta lección.
+        - Toma el rol `Client`.
+
+#### Abstract Factory - Implementation & Design Considerations
+
+- Consideraciones de implementación:
+  - Las factorías pueden implementarse como `singletons`, ya que normalmente solo necesitaremos una única instancia. Pero asegúrate de familiarizarte con las desventajas del patrón `Singleton`.
+  - Añadir un nuevo tipo de producto requiere cambios en la factoría base y en las implementaciones del `factory`.
+  - Proveemos el código del cliente con `Concrete Factory` para que pueda usar esa factoría para crear objetos.
+- Consideraciones del diseño:
+  - Cuando se quiera restringir la creación de objetos para que todos ellos trabajen juntos como un set o kit de objetos, entonces `abstract factory` es un buen patrón de diseño.
+  - `Abstract Factory` usa el patŕon de diseño `Factory Method`.
+  - Si los objetos son costosos de crear entonces podemos cambiar de forma transparente las implementaciones de la factoría para usar el patrón de diseño `Prototype` o `Singleton` y así crear esos objetos.
+
+#### Abstract Factory - Example
+
+Vamos a ver ejemplos del mundo real donde se usa `abstract factory`.
+
+- El paquete `javax.xml.parsers.DocumentBuilderFactory` que es parte de la API de Java para XML, es un buen ejemplo de uso del patrón de diseño `Abstract Factory`.
+- Sin embargo, esta implementación no coincide al 100% con el UML de `abstract factory` dado por `GoF`. La clase tiene un método `static newInstance()` que devuelve el objeto de clase de factoría real usado para crear diferentes productos.
+- El método `newInstance()` usa `classpath scanning`, `system properties` y un `external property file` como formas de encontrar la implementación real de la clase factoría y crear el objeto de factoría. Así que podemos cambiar la clase factoría usada, incluso aunque este sea un método estático.
+
+![alt Abstract Factory - DocumentBuilderFactory 01](./images/22-AbstractFactoryDocumentBuilderFactory01.png)
+
+![alt Abstract Factory - DocumentBuilderFactory 02](./images/23-AbstractFactoryDocumentBuilderFactory02.png)
+
+#### Abstract Factory - Comparison with Factory Method
+
+- `Abstract Factory`
+  - Oculta las factorías al igual que los objetos concretos usados desde el código del cliente.
+  - Adecuado cuando muchos objetos están diseñados para trabajar juntos y el cliente debe usar productos de una sola familia a la vez.
+- `Factory Method`
+  - Oculta los objetos concretos usados desde el código del cliente.
+  - Se preocupa de un producto y sus subclases. La colaboración de un producto con otros objetos es irrelevante.
+
+#### Abstract Factory - Pitfalls
+
+- Es bastante más complejo de implementar que el patrón de diseño `Factory Method` o que cualquier otro patrón de diseño creacional.
+- Un nuevo requerimiento para añadir un nuevo producto requiere cambios en la base de la factoría y en TODAS las implementaciones del `factory`.
+- Es difícil visualizar que necesitamos este patrón de diseño al comienzo de un desarrollo, y normalmente se comienza creando `Factory Method`.
+- El patrón de diseño `Abstract Factory` es muy específico al problema de familias de productos. Difícilmente se puede aplicar para resolver otros tipos de problemas.

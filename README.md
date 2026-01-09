@@ -247,3 +247,42 @@ Ver proyecto `design-patterns-playground`:
             - Esta clase ya viene medio desarrollada y lo que se implementa son los métodos `reset()` y `clone()`.
         - `Point3D`: Clase que aporta su tipo a GameUnit. No es realmente importante.
         - `Client`: Creamos la instancia inicial de `Swordsman` usando su constructor y usamos el patrón de diseño `prototype`. Es el rol `Client`.
+
+### Abstract Factory
+
+[Abstract Factory](./design-patterns-playground/README.md#abstract-factory)
+
+Ver proyecto `design-patterns-playground`:
+
+- `sec06`
+    - `abstractfactory`
+        - `Instance`: Interface que representa un recurso de computador que está disponible para proveedores de cloud como Amazon y Google Cloud.
+            - Se definen métodos genéricos que pueden ser llamados independientemente de la implementación que vayamos a usar.
+            - Toma el rol `Abstract Product`.
+        - `Storage`: Interface que abstrae el almacenamiento en la nube disponible desde varios proveedores de cloud.
+            - Toma el rol `Abstract Product`.
+        - `ResourceFactory`: Interface que representa nuestro `abstract factory`.
+            - Es una de las clases que vamos a codificar en esta lección.
+            - Añadimos métodos para crear objetos de los tipos `Instance` y `Storage`.
+            - Toma el rol `Abstract Factory`.
+        - `aws`: Paquete para Amazon Web services.
+            - `Ec2Instance`: Clase que implementa la interface `Instance`. Representa un recurso de computador en Amazon Cloud.
+                - Toma el rol `Concrete Product`
+            - `S3Storage`: Clase que implementa la interface `Storage`. Representa almacenamiento en Amazon Cloud.
+                - Toma el rol `Concrete Product`
+            - `AwsResourceFactory`: Clase que implementa la interface `ResourceFactory`.
+                - Es una de las clases que vamos a codificar en esta lección.
+                - Sobreescribimos los métodos de `ResourceFactory` para devolver objetos de `Ec2Instance` y `S3Storage`.
+                - Toma el rol `Concrete Factory`.
+        - `gcp`: Paquete para recursos Google Compute Engine.
+            - `GoogleComputeEngineInstance`: Clase que implementa la interface `Instance`. Representa un recurso de computador en Google Cloud.
+                - Toma el rol `Concrete Product`
+            - `GoogleCloudStorage`: Clase que implementa la interface `Storage`. Representa almacenamiento en Google Cloud.
+                - Toma el rol `Concrete Product`
+            - `GoogleResourceFactory`: Clase que implementa la interface `ResourceFactory`.
+                - Es una de las clases que vamos a codificar en esta lección.
+                - Sobreescribimos los métodos de `ResourceFactory` para devolver objetos de `GoogleComputeEngineInstance` y `GoogleCloudStorage`.
+                - Toma el rol `Concrete Factory`.
+            - `Client`: Clase que sirve para usar nuestro `Abstract Factory`.
+                - Es una de las clases que vamos a codificar en esta lección.
+                - Toma el rol `Client`.
