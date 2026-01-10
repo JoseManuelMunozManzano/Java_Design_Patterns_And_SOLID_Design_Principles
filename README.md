@@ -139,7 +139,7 @@ Los patrones de diseño creacionales tratan con la creación de objetos de clase
 
 ¿Por qué necesitamos patrones de diseño para crear un objeto de una clase? ¿No podemos usar el operador `new` y ya está?
 
-Si, pero hay muchos requisitos adicionales que tienen lugar cuando estamos desarrollando una aplicación real.
+Sí, pero hay muchos requisitos adicionales que tienen lugar cuando estamos desarrollando una aplicación real.
 
 Por ejemplo, nuestro objeto podría necesitar muchos otros objetos antes de que pueda crearse, o puede necesitar muchos pasos para poder crearse, como leer data de un fichero o hacer una query para leer de BD y de ahí crear el objeto final.
 
@@ -286,3 +286,29 @@ Ver proyecto `design-patterns-playground`:
             - `Client`: Clase que sirve para usar nuestro `Abstract Factory`.
                 - Es una de las clases que vamos a codificar en esta lección.
                 - Toma el rol `Client`.
+
+### Singleton
+
+[Singleton](./design-patterns-playground/README.md#singleton)
+
+Ver proyecto `design-patterns-playground`:
+
+- `sec07`
+    - `eagersingleton`
+        - `EagerRegistry`: Clase con el rol `Singleton`.
+          - Inicialización temprana. 
+          - Desarrollamos el código.
+        - `Client`: Clase para trabajar con `EagerRegistry`.
+    - `lazysingletondcl`
+        - `LazyRegistryWithDCL`: Clase con el rol `Singleton`.
+            - Inicialización perezosa usando `double check logging` y `volatile`.
+            - Desarrollamos el código.
+        - `Client`: Clase para trabajar con `LazyRegistryWithDCL`.
+    - `lazysingletoniodh`
+        - `LazyRegistryIODH`: Clase con el rol `Singleton`.
+            - Inicialización perezosa usando `holder idiom`.
+            - Desarrollamos el código.
+        - `Client`: Clase para trabajar con `LazyRegistryIODH`.
+    - `lazysingletonenum`
+        - `RegistryEnum`: Enum con el rol `Singleton`.
+            - Desarrollamos el código.

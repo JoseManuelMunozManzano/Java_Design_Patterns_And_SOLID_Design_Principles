@@ -950,3 +950,136 @@ Vamos a ver ejemplos del mundo real donde se usa `abstract factory`.
 - Un nuevo requerimiento para añadir un nuevo producto requiere cambios en la base de la factoría y en TODAS las implementaciones del `factory`.
 - Es difícil visualizar que necesitamos este patrón de diseño al comienzo de un desarrollo, y normalmente se comienza creando `Factory Method`.
 - El patrón de diseño `Abstract Factory` es muy específico al problema de familias de productos. Difícilmente se puede aplicar para resolver otros tipos de problemas.
+
+### Singleton
+
+#### Singleton - Introduction
+
+Este patrón de diseño creacional es uno de los más usados.
+
+¿Qué es `singleton` y donde podemos usarlo?
+
+- Una clase `singleton` tiene solo una instancia, accesible globalmente a través de un único punto.
+  - Se provee acceso a esa instancia via un método o campo público en la clase `singleton`.
+- El principal problema que resuelve este patrón es el asegurar que solo existe una instancia de una clase.
+- Tener en cuenta que cualquier estado añadido al `singleton` formará parte del estado global de la aplicación, ya que la instancia `singleton` es compartida globalmente.
+  - Un estado global muy grande es un indicativo de un mal diseño o implementación.
+
+**UML**
+
+![alt Singleton - UML](./images/24-SingletonUML.png)
+
+- `Singleton`: Toma el ron `Singleton`.
+  - Responsable de crear una única instancia.
+  - Provee un método estático, normalmente llamado `getInstance()` para obtener la instancia.
+
+#### Singleton - Implementation Steps
+
+- Controlar la creación de la instancia para asegurarnos de que solo hay una instancia.
+  - Él, o los constructores existentes, no puede ser accesibles globalmente.
+  - No se permite crear subclases ni herencia, ya que la creación de las subclases no quedaría bajo nuestro control.
+- Mantener un registro de la instancia.
+  - La clase `Singleton` misma es un buen lugar para mantener el registro de la instancia.
+- Dar acceso a la instancia `singleton`.
+  - Una buena posibilidad es un método `public static`.
+  - Se puede exponer la instancia como un campo `final public static`, pero no funcionará en todas las implementaciones de `singleton`.
+
+Hay dos formas de implementar el patrón de diseño `Singleton`:
+
+- Inicialización temprana - `Eager Singleton`.
+  - Es un `singleton` cuya instancia es creada tan pronto como se carga la clase. No esperamos a que alguien pregunte por esa instancia.
+- Inicialización perezosa - `Lazy Singleton`
+  - Es un `singleton` cuya instancia es creada la primera vez que es requerida.
+
+#### Singleton - Implementation - Eager Singleton
+
+En `src/java/com/jmunoz` creamos los paquetes/clases siguientes:
+
+- `sec07`
+  - `eagersingleton`
+    - `EagerRegistry`: Clase con el rol `Singleton`.
+      - Inicialización temprana. 
+      - Desarrollamos el código.
+    - `Client`: Clase para trabajar con `EagerRegistry`.
+
+#### Singleton - Implementation - Lazy Singleton
+
+Implementamos `Lazy Singleton` usando `double check locking` y `volatile`.
+
+En `src/java/com/jmunoz` creamos los paquetes/clases siguientes:
+
+- `sec07`
+  - `lazysingletondcl`
+    - `LazyRegistryWithDCL`: Clase con el rol `Singleton`.
+      - Inicialización perezosa usando `double check locking` y `volatile`.
+      - Desarrollamos el código.
+    - `Client`: Clase para trabajar con `LazyRegistryWithDCL`.
+
+#### Singleton - Implementation - Initialization Holder
+
+Se muestra otra forma de implementar `Lazy Singleton`, usando `holder idiom`.
+
+Esta es, quizás, la mejor forma de crear un `Lazy Singleton`.
+
+En `src/java/com/jmunoz` creamos los paquetes/clases siguientes:
+
+- `sec07`
+  - `lazysingletoniodh`
+    - `LazyRegistryIODH`: Clase con el rol `Singleton`.
+      - Inicialización perezosa usando `holder idiom`.
+      - Desarrollamos el código.
+    - `Client`: Clase para trabajar con `LazyRegistryIODH`.
+
+#### Singleton - Implementation - Enum
+
+Se muestra otra forma de implementar `Singleton`, usando un enum.
+
+En `src/java/com/jmunoz` creamos los paquetes/clases siguientes:
+
+- `sec07`
+  - `lazysingletonenum`
+    - `RegistryEnum`: Enum con el rol `Singleton`.
+      - Desarrollamos el código.
+
+#### Singleton - Implementation & Design Considerations
+
+- Consideraciones de implementación:
+  - La inicialización `Early/Eager` es la foram más sencilla y la preferida para crear un `singleton`.
+    - Siempre intentar usar primero esta forma y, solo si tenemos algún problema con el tiempo de inicio de la aplicación, intentar los otros enfoques.
+  - El patrón de diseño `Lazy Singleton` clásico usa `double check locking` y un campo `volatile`. Lo veremos muchas veces en el mundo real.
+  - El patrón de diseño `Lazy Singleton` con `initialization holder idiom` provee lo mejor de ambos mundos, ya que no tenemos que tratar directamente con problemas de sincronización y es fácil de implementar.
+    - Si necesitamos `Lazy Singleton` esta forma es la que deberíamos intentar implementar primero.
+  - También podemos implementar `Singleton` usando enums. Sin embargo, debido a la idea preconcebida sobre lo que es un enum, es difícil de "vender" esta idea en una revisión de código, especialmente si el `Singleton` tiene campos mutables, ya que los enums están pensados para ser constantes.
+    - Si usamos enum para construir `Singleton`, mejor asegurarnos de que el estado es inmutable.
+  - Por último, si la solución más sencilla funciona, `Eager Singleton`, ¡úsala!
+- Consideraciones del diseño:
+  - La creación de `Singleton` no necesita de ningún parámetro. Si necesitamos que el constructor tenga argumentos, en vez de `Singleton` necesitaremos usar el patrón de diseño `Simple Factory` o `Factory Method`.
+  - Asegurarnos de que nuestros `singletons` NO tengan mucho estado global mutable.
+    - Actualmente, `Singleton` es considerado un anti-patrón, es decir, que debemos evitarlo porque causa muchos problemas.
+    - Para evitar problemas, intentar que el estado de un `singleton` sea inmutable.
+
+#### Singleton - Example
+
+- La clase `java.lang.Runtime` de la API estándar Java es un muy buen ejemplo de uso de `Eager Singleton`.
+
+![alt Singleton - Runtime](./images/25-SingletonRuntime.png)
+
+#### Singleton - Comparison with Factory Method
+
+- `Singleton`
+  - El propósito principal del patrón de diseño `Singleton` es asegurarnos de que solo se crea UNA instancia de una clase.
+  - La instancia `Singleton` se crea sin necesidad de que el código cliente envie argumentos.
+- `Factory Method`
+  - Se usa principalmente para aislar el código del cliente de la creación de objetos y delegar la creación de objetos a subclases.
+  - Permite parametrizar la creación de objetos.
+
+#### Singleton - Pitfalls
+
+- El patrón de diseño `Singleton` puede engañarnos sobre las dependencias que tenemos en el código.
+  - Ya que son accesibles globalmente, es fácil que partes de nuestro código comiencen a depender de esta instancia `Singleton`, y esta dependencia no es obvia de ver.
+- Son complicadas de probar con `unit testing`. No es fácil hacer un `mock` de la instancia que se devuelve.
+- La manera más común de implementar `Singleton` en Java es usando variables estáticas, y estas son mantenidas por el `class loader` y no por la `JVM`. Así que podrían NO ser `Singleton` verdaderas en una aplicación web o en `OSGi`.
+  - Si tenemos una clase `Singleton` desplegada en dos aplicaciones web separadas que se están ejecutando en una única instancia de `Tomcat`, entonces tenemos dos instancias `singleton` en una única `JVM`.
+  - Esto no suele ser un problema, pero si el `singleton` está atado a un recurso externo único, debemos tener en cuenta que una variable estática significa una copia por `class loader`, no por `JVM`.
+- Si tenemos un `singleton` con una gran cantidad de estado global MUTABLE, esto indica muy claramente que estamos abusando del patŕon `Singleton`.
+  - Esta es la razón principal por la que actualmente se considera a este patrón como un anti-patrón, y se intente evitar. Tener un estado global mutable se considera una mala práctica.
