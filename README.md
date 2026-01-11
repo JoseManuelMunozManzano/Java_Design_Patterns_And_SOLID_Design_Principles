@@ -312,3 +312,25 @@ Ver proyecto `design-patterns-playground`:
     - `lazysingletonenum`
         - `RegistryEnum`: Enum con el rol `Singleton`.
             - Desarrollamos el código.
+
+### Object Pool
+
+[Object Pool](./design-patterns-playground/README.md#object-pool)
+
+Ver proyecto `design-patterns-playground`:
+
+- `sec08`
+    - `objectpool`
+        - `Point2D`: Clase necesaria para el ejemplo.
+        - `Poolable`: Es una interface.
+            - Es una interface que vamos a codificar.
+            - Cualquier clase que implemente esta interface se puede agrupar en nuestro object pool.
+        - `Image`: Es una interface que extiende de `Poolable`.
+            - Representa una imagen cargada desde disco y que queremos renderizar muchas veces.
+        - `Bitmap`: Clase concreta, implementación de `Image` con su propio estado.
+            - Representa un fichero bitmap almacenado en nuestro disco.
+            - Vamos a hacer pool de objetos de esta clase para tener objetos en reserva.
+            - Tenemos que codificar el método `reset()`, de `Poolable`.
+        - `ObjectPool`: Clase donde implementamos nuestro `Object Pool`.
+            - Esta clase también la codificamos.
+        - `Client`: Clase con método `main()` para usar `ObjectPool`.

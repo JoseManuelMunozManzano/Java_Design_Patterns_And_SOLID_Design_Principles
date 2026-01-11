@@ -797,7 +797,7 @@ Vamos a ver ejemplos del mundo real donde se usa `prototype`.
 
 #### Abstract Factory - Introduction
 
-¿Qué es `abstrac factory` y donde podemos usarlo?
+¿Qué es `abstract factory` y donde podemos usarlo?
 
 - Se usa `Abstract Factory` cuando tenemos dos o más objetos que están diseñados para trabajar juntos formando un kit o set y puede haber muchos sets o kits que pueden ser creados por código cliente.
 - La intención tras `Abstract Factory` es separar o aislar el código cliente de implementaciones concretas de objetos, formando tal set, y también del código que crea esos sets de objetos.
@@ -965,6 +965,13 @@ Este patrón de diseño creacional es uno de los más usados.
 - Tener en cuenta que cualquier estado añadido al `singleton` formará parte del estado global de la aplicación, ya que la instancia `singleton` es compartida globalmente.
   - Un estado global muy grande es un indicativo de un mal diseño o implementación.
 
+- Tener en cuenta que hay muy pocas situaciones donde el patrón de diseño `Singleton` es adecuado.
+  - Los valores de configuración de una aplicación pueden ser rastreados usando `singleton`. Normalmente, son leídos desde un fichero al comienzo de la ejecución y se usan en otras partes de la aplicación.
+    - Eso sí, estos valores deben ser inmutables, es decir, que no se cambien los valores de configuración en el código.
+    - Si ese fuera el caso, valores mutables, entonces usar `singleton` se ve como un anti-patrón.
+  - Frameworks de logging, como también hacen uso del patrón de diseño `Singleton`.
+  - El framework `Spring` trata todos los beans como `singleton` por defecto. En `Spring` no tenemos que hacer nada para asegurarnos de que realmente son instancias únicas, ya lo hace automáticamente.
+
 **UML**
 
 ![alt Singleton - UML](./images/24-SingletonUML.png)
@@ -1083,3 +1090,130 @@ En `src/java/com/jmunoz` creamos los paquetes/clases siguientes:
   - Esto no suele ser un problema, pero si el `singleton` está atado a un recurso externo único, debemos tener en cuenta que una variable estática significa una copia por `class loader`, no por `JVM`.
 - Si tenemos un `singleton` con una gran cantidad de estado global MUTABLE, esto indica muy claramente que estamos abusando del patŕon `Singleton`.
   - Esta es la razón principal por la que actualmente se considera a este patrón como un anti-patrón, y se intente evitar. Tener un estado global mutable se considera una mala práctica.
+
+### Object Pool
+
+#### Object Pool - Introduction
+
+Si se ha trabajado con pool de conexiones en programa JDBC, o con thread pool, entonces ya se ha usado `Object Pool`.
+
+En esta sección, vamos a ver como crear nuestro propio `Object Pool`, que puede cachear cualquier objeto que queramos.
+
+¿Qué es `object pool` y donde podemos usarlo?
+
+- En nuestro sistema, si el **coste de crear una instancia de una clase es alto**, ya sea un coste de rendimiento o porque ese objeto consume un recurso externo limitado (como un thread o un socket), y necesitamos una gran cantidad de objetos de esa clase **por corta duración**, podemos crear un `Object Pool`.
+- Hay muy pocos escenarios donde un `object pool` puede mejorar el rendimiento. De hecho, podemos afectar negativamente al rendimiento de la aplicación si no se implementa este patrón de diseño con cuidado.
+- Hay un par de formas en las que podemos añadir objetos en el `object pool`.
+  - Podemos pre-crear objetos de la clase o recolectar instancias no utilizadas en una memoria caché. Cuando el código necesite un objeto de esa clase lo proveemos desde esa caché.
+- Este es uno de los patrones de diseño más complicados de implementar de forma eficiente (y sin defectos).
+  - Esto, especialmente al tener que tratar con problemas de `multithreading`.
+
+**UML**
+
+![alt Object Pool - UML](./images/26-ObjectPoolUML.png)
+
+- `AbstractReusable`: Toma el rol `Abstract Reusable Product`.
+  - Clase abstracta o interface que representa nuestro objeto.
+  - El cliente va a usar operaciones que están definidas en esta interface o clase abstracta.
+- `ConcreteReusable`: Toma el rol `Concrete Reusable Product`.
+  - Es la implementación de `AbstractReusable`.
+  - Esta clase tiene su propio estado.
+- `ObjectPool`: Toma el rol `Object Pool`.
+  - Cachea las instancias de `Abstract Reusable Product`.
+  - Provee un método para que el cliente lo llame y pueda obtener un objeto del `pool`.
+  - Provee otro método para que el cliente lo llame y pueda liberar un objeto no usado.
+- `Client`: Toma el rol `Client`.
+  - Interactúa con `ObjectPool` para obtener instancias de productos reutilizables y devolver objetos no utilizados.
+
+#### Object Pool - Implementation Steps
+
+- Comenzamos creando la clase para `ObjectPool`.
+  - Se debe hacer en el `pool` un cacheo de objetos `thread-safe`.
+  - Deben proveerse métodos para adquirir y liberar objetos y el `pool` debe resetear los objetos cacheados antes de entregarlos al cliente.
+- El objeto reutilizable debe proveer métodos para resetear su estado al ser "liberado" por código.
+- ¿Qué pasa cuando el `pool` queda sin objetos?
+  - Tenemos que decidir si crear nuevos objetos en el `pool` cuando el `pool` está vacío o esperar hasta que un objeto queda disponible. Esta elección depende de la implementación, y está influenciada si el objeto está atado a un número fijo de recursos externos, donde en este caso tenemos que esperar. En caso contrario, si el objeto no depende de ningún recurso externo o tenemos acceso a recursos ilimitados, podemos crear nuevos objetos y cachearlos cuando vuelvan al `pool`.
+
+#### Object Pool - Example UML
+
+Este es el ejemplo que vamos a implementar usando código Java.
+
+![alt Object Pool - Example UML](./images/27-ObjectPool-ExampleUML.png)
+
+- `Poolable`: Es una interface.
+  - Es la interface que va a usar nuestro `ObjectPool`.
+  - Podemos tener muchas clases que pueden implementar la interface `Poolable` y ser elegidas para añadirlas al `pool` esn nuestra implementación de `ObjectPool`.
+  - Esta interface solo define un método `reset()` para resetear el estado interno de un objeto del `pool`.
+- `Image`: Es una interface.
+  - Representa una imagen cargada desde disco y que queremos renderizar muchas veces.
+- `Bitmap`: Clase concreta, implementación de `Image` con su propio estado.
+  - Es estado es el campo `imageData`, que es lo que se carga desde disco. `location` y `extent` son propiedades o partes del estado que necesitan resetearse antes de ser reutilizado.
+  - Podemos reutilizar `imageData` porque es lo que vamos a cachear. Cada vez que se crea una instancia de `Image`, no queremos leer desde disco, y por eso hacemos `pool` de ese objeto particular `Bitmap`.
+  - Por tanto, mantenemos `imageData` tal cual y reseteamos `location` y `extent`.
+- `ObjectPool`: Clase que expone dos métodos importantes:
+  - Método `get()`, para devolver al cliente el objeto `Image` del `pool`.
+  - Método `release()`, que toma una instancia de un `Bitmap` en particular y lo devuelve al `pool`.
+
+#### Object Pool - Implementation
+
+Ver proyecto `design-patterns-playground`:
+
+- `sec08`
+  - `objectpool`
+    - `Point2D`: Clase necesaria para el ejemplo.
+    - `Poolable`: Es una interface.
+      - Es una interface que vamos a codificar.
+      - Cualquier clase que implemente esta interface se puede agrupar en nuestro object pool.
+    - `Image`: Es una interface que extiende de `Poolable`.
+      - Representa una imagen cargada desde disco y que queremos renderizar muchas veces.   
+    - `Bitmap`: Clase concreta, implementación de `Image` con su propio estado.
+      - Representa un fichero bitmap almacenado en nuestro disco.
+      - Vamos a hacer pool de objetos de esta clase para tener objetos en reserva.
+      - Tenemos que codificar el método `reset()`, de `Poolable`.
+    - `ObjectPool`: Clase donde implementamos nuestro `Object Pool`.
+      - Esta clase también la codificamos.
+    - `Client`: Clase con método `main()` para usar `ObjectPool`.
+
+#### Object Pool - Implementation & Design Considerations
+
+- Consideraciones de implementación:
+  - Resetear el estado de un objeto NO debe ser una operación costosa. En caso contrario podemos perder la ganancia de rendimiento por la cual creamos este patrón de diseño.
+  - Podemos pre-cachear objetos, es decir, crear objetos por adelantado cuando se crea `Object Pool` puede ser de ayuda, ya que esto no ralentizará el código que use estos objetos. Sin embargo, puede añadir tiempo de arranque de la aplicación y consumo de memoria, ya que estos objetos creados estarán en memoria.
+  - La sincronización implementada en `Object Pool` debe considerar el tiempo necesario para el reseteo y, si es posible, sobre todo si el reseteo lleva mucho tiempo, evitar resetear en un contexto de sincronización.
+- Consideraciones del diseño:
+  - El método `get()` de `Object Pool` puede parametrizarse, es decir, podemos preguntarle al cliente que pase argumentos y ese será el criterio para devolver diferentes tipos de objetos.
+    - De esta forma, podemos usar un único `Object Pool` para cachear objetos de múltiples clases.
+  - Agrupar (`pooling`) objetos solo es beneficioso si hay involucrado un coste de inicialización, por ejemplo una inicialización de un recurso externo como una conexión o un thread. No agrupar (`pool`) objetos SOLO para ahorrar memoria, a menos que nos encontremos con errores `OutOfMemory`.
+  - No agrupar (`pool`) objetos de larga vida o solo por ahorrar llamadas frecuentes a `new`. `Pooling` podría impactar al rendimiento de forma negativa en estos casos, ya que los objetos van a tardar mucho en volver al `pool` y se va a estar creando nuevos objetos o va a haber muchos bloqueos esperando a que se libere un objeto.
+
+#### Object Pool - Example
+
+- Usar `Object Pool` para ahorrar asignaciones de memoria y `GC` (`garbage collector`) ya está casi `deprecated`. El hardware y la `JVM` son ahora más eficientes y tienen acceso a más memoria.
+- Sin embargo, `Object Pool` sigue siendo un patrón de diseño común cuando interactuamos con recursos externos como threads y conexiones.
+- Un ejemplo que podemos encontrar en la biblioteca de clases de Java es `java.util.concurrent.ThreadPoolExecutor`. Su función es hacer un `pool` de threads. Incluso aunque podamos usar esta clase directamente, lo normal es usarla via la interface `ExecutorService` usando la clase `Executors` y el método estático `newCachedThreadPool()`.
+
+![alt Object Pool - Executors.newCachedThreadPool()](./images/28-ObjectPoolExecutors.png)
+
+- Otro ejemplo muy común de `Object Pool` es un `pool` de conexiones de BD.
+  - La biblioteca `Apache commons dbcp` se usa para `pooling` de conexiones de BD. La clase `org.apache.commons.dbcp.BasicDataSource`, en el paquete `dbcp` es un ejemplo de patrón de diseño `Object Pool` para hacer `pools` de conexiones de BD. Este `pool` suele crearse y exponerse via `JNDI` o como un `bean` de Spring en las aplicaciones.
+
+![alt Object Pool - BasicDataSource()](./images/29-ObjectPoolBasicDataSource.png)
+
+#### Object Pool - Comparison with Prototype
+
+- `Object Pool`
+  - Tenemos objetos cacheados que suelen vivir durante toda la ejecución del programa.
+  - El código que usa objetos de `Object Pool` tiene que devolver de forma explícita los objetos al `pool`. Dependiendo de la implementación, fallar en esta devolución al `pool` puede llevar a fugas de memoría o de recursos.
+- `Prototype`
+  - Se crean objetos cuando hace falta y no se cachean.
+  - Una vez un objeto se ha clonado no es necesario que el código cliente haga ningún tratamiento especial, y ese objeto puede ser usado como cualquier otro objeto.
+
+#### Object Pool - Pitfalls
+
+- Una implementación exitosa depende de que el código cliente haga un uso correcto, y puede que esto no esté bajo nuestro control. Liberar objetos de vuelta al `pool` puede ser vital para un funcionamiento correcto.
+- El objeto reutilizable necesita hacer la tarea de resetear su estado de manera eficiente, es decir, que no conlleve demasiado tiempo. Algunos objetos pueden no ser adecuados para `pooling` debido a este requerimiento.
+- Es difícil de usar al refactorizar código legacy, ya que el código cliente y el objeto reutilizable necesitan ambos estar al tanto del `object pool`, ya que el cliente necesita interaccionar con `object pool` y el objeto a agrupar necesita tener la operación de reseteo de estado.
+- Son difíciles de optimizar, ya que los `pools` son sensibles a la carga del sistema en tiempo de ejecución (demanda de objetos `pooled`).
+- Tenemos que decidir qué ocurre cuando el `pool` está vacío y se pide un objeto. Se puede o bien esperar a que se libere un objeto o bien crear un nuevo objeto. Ambas opciones tienen sus más y sus menos.
+  - Esperar puede afectar muy negativamente al rendimiento, incluso llevar a `deadlock`.
+  - Si se crean nuevos objetos tendremos que hacer trabajo adicional para mantenerlos o recortar el tamaño del `pool` si no queremos terminar con un `pool` muy grande.
