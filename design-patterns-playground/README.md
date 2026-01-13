@@ -1217,3 +1217,175 @@ Ver proyecto `design-patterns-playground`:
 - Tenemos que decidir qué ocurre cuando el `pool` está vacío y se pide un objeto. Se puede o bien esperar a que se libere un objeto o bien crear un nuevo objeto. Ambas opciones tienen sus más y sus menos.
   - Esperar puede afectar muy negativamente al rendimiento, incluso llevar a `deadlock`.
   - Si se crean nuevos objetos tendremos que hacer trabajo adicional para mantenerlos o recortar el tamaño del `pool` si no queremos terminar con un `pool` muy grande.
+
+## Structural Design Patterns
+
+Los patrones de diseño estructurales tratan con como se disponen o componen las clases y los objetos para obtener de ellos alguna funcionalidad o comportamiento.
+
+Podemos usar composición y podemos usar herencia, y, cuando combinamos estas dos características tan poderosas podemos obtener comportamientos muy interesantes de nuestras clases y nuestros objetos.
+
+Estos son los patrones de diseño estructurales que vamos a ver en el curso:
+
+- Adapter
+- Bridge
+- Decorator
+- Composite
+- Facade
+- Flyweight
+- Proxy
+
+### Adapter
+
+#### Adapter - Introduction
+
+Es un patrón de diseño estructural. Vamos a ver qué es y por qué lo necesitamos:
+
+- Tenemos un objeto existente que provee la funcionalidad que el cliente necesita. Pero el código del cliente no puede usar este objeto porque espera un objeto con una interface diferente.
+- Usando el patrón de diseño `Adapter` hacemos que este objeto existente pueda trabajar con el cliente, al adaptar ese objeto a la interface esperada por el cliente.
+- Este patrón también es llamado `Wrapper` ya que envuelve nuestro objeto existente.
+
+**UML**
+
+Existen dos variantes de este patrón de diseño:
+
+- `Class Adapter` también llamado `Two Way Adapter`.
+- `Object Adapter`.
+
+Vamos a mirar ambos.
+
+![alt Adapter - Class Adapter UML](./images/30-AdapterClassAdapterUML.png)
+
+Indicar que este enfoque termina siendo más problemático que útil. Hablaremos más de ello en `Adapter - Pitfalls`.
+
+- `Adaptee`: Es la clase que provee la funcionalidad que necesita `Client`. Tiene el rol `Adaptee`.
+  - Tiene un método, llamado en el ejemplo `myOperation()`, que hace exactamente lo que el cliente necesita.
+  - Sin embargo, el cliente está esperando un objeto implementado usando la interface `Target`.
+- `Target`: Es la interface en la cual `Client` espera que le venga implementado el objeto. Tiene el rol `Target interface`.
+  - Tiene un método, llamado en el ejemplo `operation()`.
+- `Client`: Tiene el rol `Client`.
+  - Necesita la funcionalidad que provee `Adaptee`, pero no así, sino implementando otra interface diferente.
+- `Adapter`: Es la clase que usamos para solucionar el problema. Tiene el rol `Adapter`.
+  - En `Class Adapter`, `Adapter` es una clase que extiende de nuestra clase existente `Adaptee` que provee la funcionalidad, e implementa la interface `Target` que espera nuestro cliente.
+  - Implementamos el método `operation()` para que llame a `myOperation()`.
+
+![alt Adapter - Object Adapter UML](./images/31-AdapterObjectAdapterUML.png)
+
+Esta es la forma en la que debemos implementar el patrón de diseño `Adapter`.
+
+- `Adaptee`: Es la clase que provee la funcionalidad que necesita `Client`. Tiene el rol `Adaptee`.
+  - Tiene un método, llamado en el ejemplo `myOperation()`, que hace exactamente lo que el cliente necesita.
+  - Sin embargo, el cliente está esperando un objeto implementado usando la interface `Target`.
+- `Target`: Es la interface en la cual `Client` espera que le venga implementado el objeto. Tiene el rol `Target interface`.
+  - Tiene un método, llamado en el ejemplo `operation()`.
+- `Client`: Tiene el rol `Client`.
+  - Necesita la funcionalidad que provee `Adaptee`, pero no así, sino implementando otra interface diferente.
+- `ObjectAdapter`: Es la clase que usamos para solucionar el problema. Tiene el rol `Adapter`.
+  - `ObjectAdapter` es una clase que implementa la interface `Target` que espera nuestro cliente, y tenemos un objeto interno de `Adaptee`, dentro de `ObjectAdapter`.
+  - Hacemos uso de la composición en vez de la herencia (en `Class Adapter`) para proveer la funcionalidad de `Adaptee`.
+  - Usamos el objeto interno y llamamos al método de ese objeto para proveer la funcionalidad.
+  - Se le llama `Object Adapter` porque adapta un objeto en vez de extenderlo de nuestra clase `Adaptee`.
+
+#### Adapter - Implementation Steps
+
+- Comenzamos creando una clase para `Adapter`.
+  - `Adapter` debe implementar la interface esperada por el cliente.
+  - Primero intentamos el enfoque `Class Adapter`, extendiendo de nuestra clase existente.
+  - En la implementación de `Class Adapter` solo necesitamos llamar al método heredado de `Adaptee`.
+  - Luego para `Object Adapter`, implementamos la interface `Target` y aceptamos `Adaptee` como un argumento del constructor en `Adapter`, para hacer así uso de la composición.
+- Un `Object Adapter` debe aceptar como argumento del constructor a `Adaptee` o, como solución no tan buena, se puede instanciar en el constructor, creando un acoplamiento fuerte con un `Adaptee` específico.
+
+#### Adapter - Example UML
+
+Vamos a implementar tanto el enfoque `Class Adapter` como el enfoque `Object Adapter`.
+
+![alt Adapter - Example Class Adapter UML](./images/32-Adapter-ExampleClassAdapterUML.png)
+
+- `BusinessCardDesigner`: Toma el rol `Client`.
+  - Es el código que espera un objeto que implemente la interface `Customer`.
+- `Customer`: Toma el rol `Target interface`.
+  - Tiene métodos que usa nuestro cliente.
+- `Employee`: Toma el rol `Adaptee`.
+  - Este es el objeto que realmente tenemos en nuestro código.
+  - Tiene toda la información que necesita `BusinessCardDesigner`, pero la interface no coincide.
+- `EmployeeClassAdapter`: Toma el rol `Adapter`.
+  - Es nuestra `Class Adapter`. Extiende de la clase `Employee` e implementa la interface `Customer`.
+
+![alt Adapter - Example Object Adapter UML](./images/33-Adapter-ExampleObjectAdapterUML.png)
+
+- `EmployeeObjectAdapter`: Toma el rol `Adapter`.
+  - Es nuestro `Object Adapter`. Implementa la interface `Customer` y acepta el objeto `Employee` como argumento en nuestro constructor.
+  - la implementación de los métodos de `Customer` la delegamos al objeto `Employee`. 
+
+#### Adapter - Implementation - Class Adapter
+
+Ver proyecto `design-patterns-playground`:
+
+- `sec09`
+  - `classadapter`
+    - `Employee`: Toma el rol `Adaptee`.
+      - Este es el objeto que realmente tenemos en nuestro código.
+      - Tiene toda la información que necesita `BusinessCardDesigner`, pero la interface no coincide.
+    - `BusinessCardDesigner`: Toma el rol `Client`.
+      - Es el código que espera un objeto que implemente la interface `Customer`.
+    - `Customer`: Toma el rol `Target interface`.
+      - Tiene métodos que usa nuestro cliente.
+    - `EmployeeClassAdapter`: Toma el rol `Adapter`.
+      - Es nuestra `Class Adapter`. Extiende de la clase `Employee` e implementa la interface `Customer`.
+      - Esta clase viene sin código y es la que se desarrolla.
+    - `Main`: Clase con método `main()` que usa nuestro `Class Adapter`.
+      - Esta clase viene medio hecha y la terminamos de desarrollar.
+
+#### Adapter - Implementation - Object Adapter
+
+- `sec09`
+  - `objectadapter`
+    - `Employee`: Toma el rol `Adaptee`.
+      - Este es el objeto que realmente tenemos en nuestro código.
+      - Tiene toda la información que necesita `BusinessCardDesigner`, pero la interface no coincide.
+    - `BusinessCardDesigner`: Toma el rol `Client`.
+      - Es el código que espera un objeto que implemente la interface `Customer`.
+    - `Customer`: Toma el rol `Target interface`.
+      - Tiene métodos que usa nuestro cliente.
+    - `EmployeeObjectAdapter`: Toma el rol `Adapter`.
+      - Es nuestro `Object Adapter`. Implementa la interface `Customer` y acepta el objeto `Employee` como argumento en nuestro constructor.
+      - la implementación de los métodos de `Customer` la delegamos al objeto `Employee`.
+    - `Main`: Clase con método `main()` que usa nuestro `Object Adapter`.
+      - Esta clase viene medio hecha y la terminamos de desarrollar.
+
+#### Adapter - Implementation & Design Considerations
+
+- Consideraciones de implementación:
+  - La cantidad de trabajo que tenga que hacer `adapter` depende de las diferencias entre el rol `Target Interface` y el objeto que se tiene que adaptar, con rol `Adaptee`. Si los argumentos de los métodos son parecidos, entonces `adapter` tendrá poco trabajo que hacer, poco más que delegar el método.
+  - Usar `Class Adapter` nos "permite" sobreescribir alguno de los comportamientos de `Adaptee`. Pero esto es mejor evitarlo, ya que vamos a terminar con `adapter` que se comporta de forma diferente a `Adaptee`. Corregir los defectos ya no será fácil. Es mejor mantenernos simples, delegando el método y cualquier traducción de argumento que se necesite en el `adapter`.
+    - Es decir, no cambiar el comportamiento de `Adaptee` en `Class Adapter`.
+  - Es beneficioso usar `Object Adapter`, y la principal razón es que potencialmente podemos cambiar el objeto `Adaptee` que es usada en nuestro `Object Adapter` por una de sus subclases.
+    - Usando un objeto de la subclase de `Adaptee` en vez de la original tiene el beneficio de poder usar una versión mejorada.
+- Consideraciones del diseño:
+  - En Java, una `Class Adapter` podría no ser posible si tanto `Target` como `Adaptee` son clases concretas. En ese caso, usar `Object Adapter` es la única solución. Ya que no existe en Java herencia `private`, es mejor quedarnos con `Object Adapter`.
+  - `Class Adapter` también es llamada `Two Way Adapter`, ya que puede sustituir tanto a `Target Interface` como a `Adaptee`. Es decir, podemos usar un objeto de `adapter` donde se espera un objeto de `Target Interface` o donde se espera un objeto de `Adaptee`.
+    - Pero esto es algo que no queremos hacer porque como no hay herencia `private` en Java, la `Class Adapter` termina con métodos que no están relacionados, ya que tiene métodos tanto de `Target Interface` como de la clase `Adaptee`. Contaminamos la base de código.
+
+#### Adapter - Example
+
+- Las clases Java `java.io.InputStreamReader` y `java.io.OutputStreamWriter` son ejemplos de `Object Adapters`.
+- Estas clases adaptan los objetos existentes `InputStream` y `OutputStream` a las interfaces `Reader` y `Writer`, que también forman parte del paquete `java.io`.
+
+![alt Adapter - InputStreamReader](./images/34-AdapterInputStreamReader.png)
+
+#### Adapter - Comparison with Decorator
+
+- `Adapter`
+  - Solo adapta un objeto a otra interface sin cambiar su comportamiento.
+  - No es fácil usar composición recursiva, es decir, un `adapter` adaptando otro `adapter` ya que los `adapters` cambian la interface.
+- `Decorator`
+  - Mejora el comportamiento del objeto sin cambiar su interface. Un `decorator` es indistinguible del objeto que decora.
+  - Como los `decorators` no cambian la interface, podemos hacer composición recursiva o, en otras palabras, decorar un `decorator` con facilidad, ya que un `decorator` es indistinguible del objeto principal.
+
+#### Adapter - Pitfalls
+
+- Usando `Target Interface` y la clase `Adaptee` para extender nuestro `adapter`, podemos crear en Java una `Class Adapter`. Sin embargo, esto crea un objeto que expone en partes del código métodos no relacionados, contaminándolo.
+  - Evitar `Class Adapter`. Se menciona en este curso para tener un conocimiento completo del patrón de diseño `Adapter`.
+- Es muy tentador hacer muchas cosas en `adapter` más allá de una sencilla traducción a interface. Pero esto puede resultar en un `adapter` que muestra un comportamiento diferente al del objeto adaptado.
+  - Evitar hacer validaciones, modificaciones o adiciones al comportamiento que provee nuestra clase `Adaptee`.
+  - Si se hacen modificaciones y se encuentra un error en la clase `Adaptee`, puede que ese arreglo no sea tan fácil de trasladar a la clase `Adapter`.
+- No hay más `pitfalls`. Solo recordar que debemos hacer una sencilla traducción de la clase `Adaptee` a la `Target Interface` y ya.

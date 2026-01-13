@@ -135,6 +135,8 @@ Una vez que comprendemos como se crean estos grupos y lo que representan, es má
 
 ## Creational Design Patterns
 
+[Creational Design Patters](./design-patterns-playground/README.md#creational-design-patterns)
+
 Los patrones de diseño creacionales tratan con la creación de objetos de clases.
 
 ¿Por qué necesitamos patrones de diseño para crear un objeto de una clase? ¿No podemos usar el operador `new` y ya está?
@@ -334,3 +336,55 @@ Ver proyecto `design-patterns-playground`:
         - `ObjectPool`: Clase donde implementamos nuestro `Object Pool`.
             - Esta clase también la codificamos.
         - `Client`: Clase con método `main()` para usar `ObjectPool`.
+
+## Structural Design Patterns
+
+[Structural Design Patters](./design-patterns-playground/README.md#structural-design-patterns)
+
+Los patrones de diseño estructurales tratan con como se disponen o componen las clases y los objetos para obtener de ellos alguna funcionalidad o comportamiento.
+
+Podemos usar composición y podemos usar herencia, y, cuando combinamos estas dos características tan poderosas podemos obtener comportamientos muy interesantes de nuestras clases y nuestros objetos.
+
+Estos son los patrones de diseño estructurales que vamos a ver en el curso:
+
+- Adapter
+- Bridge
+- Decorator
+- Composite
+- Facade
+- Flyweight
+- Proxy
+
+### Adapter
+
+[Adapter](./design-patterns-playground/README.md#adapter)
+
+Ver proyecto `design-patterns-playground`:
+
+- `sec09`
+    - `classadapter`
+        - `Employee`: Toma el rol `Adaptee`.
+            - Este es el objeto que realmente tenemos en nuestro código.
+            - Tiene toda la información que necesita `BusinessCardDesigner`, pero la interface no coincide.
+        - `BusinessCardDesigner`: Toma el rol `Client`.
+            - Es el código que espera un objeto que implemente la interface `Customer`.
+        - `Customer`: Toma el rol `Target interface`.
+            - Tiene métodos que usa nuestro cliente.
+        - `EmployeeClassAdapter`: Toma el rol `Adapter`.
+            - Es nuestra `Class Adapter`. Extiende de la clase `Employee` e implementa la interface `Customer`.
+            - Esta clase viene sin código y es la que se desarrolla.
+        - `Main`: Clase con método `main()` que usa nuestro `Class Adapter`.
+            - Esta clase viene medio hecha y la terminamos de desarrollar.
+  - `objectadapter`
+      - `Employee`: Toma el rol `Adaptee`.
+          - Este es el objeto que realmente tenemos en nuestro código.
+          - Tiene toda la información que necesita `BusinessCardDesigner`, pero la interface no coincide.
+      - `BusinessCardDesigner`: Toma el rol `Client`.
+          - Es el código que espera un objeto que implemente la interface `Customer`.
+      - `Customer`: Toma el rol `Target interface`.
+          - Tiene métodos que usa nuestro cliente.
+      - `EmployeeObjectAdapter`: Toma el rol `Adapter`.
+          - Es nuestro `Object Adapter`. Implementa la interface `Customer` y acepta el objeto `Employee` como argumento en nuestro constructor.
+          - la implementación de los métodos de `Customer` la delegamos al objeto `Employee`.
+      - `Main`: Clase con método `main()` que usa nuestro `Object Adapter`.
+          - Esta clase viene medio hecha y la terminamos de desarrollar.
